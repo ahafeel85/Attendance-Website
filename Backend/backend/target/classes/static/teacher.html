@@ -1,0 +1,792 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14213d">
+<title>AttendIQ | Teacher Workspace</title>
+
+<style>
+:root {
+    --navy: #14213d;
+    --teal: #0f9d91;
+    --bg: #f3f6fb;
+    --text: #172033;
+    --muted: #68748a;
+    --border: #e3e9f2;
+    --white: #ffffff;
+    --green: #12714f;
+    --red: #b4233c;
+    --amber: #8c5b09;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    color: var(--text);
+    background: var(--bg);
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { opacity: .55; cursor: wait; }
+
+.topbar {
+    background: var(--navy);
+    color: white;
+    padding: 16px 4%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.brand { font-weight: 850; font-size: 23px; }
+.brand span { color: #4de0c5; }
+.brand small { display: block; color: #aab8ce; font-size: 11px; font-weight: 500; }
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.nav-link, button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 9px;
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 750;
+    text-decoration: none;
+}
+
+.nav-link { background: transparent; color: white; border: 1px solid #526079; }
+.nav-link:hover { background: #263c59; }
+.primary { background: var(--teal); color: white; }
+.light { background: #e8edf5; color: var(--navy); }
+.danger { background: #ffe7eb; color: #b4233c; }
+.success { background: #12825e; color: white; }
+button:hover { opacity: .88; }
+
+.badge-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 19px;
+    height: 19px;
+    margin-left: 5px;
+    border-radius: 50px;
+    padding: 0 5px;
+    color: white;
+    background: #c93550;
+    font-size: 10px;
+}
+
+main { width: min(1200px, 94%); margin: 28px auto 45px; }
+
+.page-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 23px;
+}
+
+h1 { margin: 0 0 7px; font-size: clamp(26px, 4vw, 34px); }
+h2 { margin: 0 0 14px; font-size: 18px; }
+.muted { color: var(--muted); font-size: 13px; line-height: 1.7; }
+
+.panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 20px rgba(25,42,70,.035);
+    min-width: 0;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.stat {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+}
+.stat-label { color: var(--muted); font-size: 12px; }
+.stat-value { margin-top: 7px; color: var(--navy); font-size: 27px; font-weight: 850; }
+
+.filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 14px;
+}
+
+.field { display: grid; gap: 7px; min-width: 0; }
+label { color: var(--muted); font-size: 12px; font-weight: 750; }
+
+input, select {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid #d6deea;
+    border-radius: 9px;
+    background: white;
+    color: var(--text);
+    outline-color: var(--teal);
+}
+
+.tool-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+.button-row { display: flex; gap: 9px; flex-wrap: wrap; }
+.search-input { max-width: 340px; }
+
+.table-wrap { width: 100%; overflow-x: auto; }
+
+table {
+    width: 100%;
+    min-width: 710px;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 13px 12px;
+    border-bottom: 1px solid #edf0f5;
+    text-align: left;
+    vertical-align: middle;
+    font-size: 13px;
+}
+
+th {
+    background: #f8fafd;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+}
+
+tbody tr:hover { background: #fafcff; }
+.student-name { color: #25344d; font-weight: 800; }
+.student-meta { margin-top: 4px; color: var(--muted); font-size: 11px; }
+
+.status-select { min-width: 130px; padding: 8px; }
+
+.message {
+    display: none;
+    padding: 13px 15px;
+    border-radius: 10px;
+    margin: 15px 0;
+    font-size: 13px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.message.error { display: block; background: #ffebee; color: #ae263d; }
+.message.success { display: block; background: #e8f8ef; color: #126b4f; }
+.message.info { display: block; background: #e9f5ff; color: #185c91; }
+
+.empty {
+    padding: 25px 12px;
+    text-align: center;
+    color: var(--muted);
+    border: 1px dashed #dce4ed;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.progress-bg { height: 7px; background: #eaf0f6; border-radius: 30px; overflow: hidden; }
+.progress { height: 100%; background: var(--teal); border-radius: 30px; }
+
+footer { padding: 0 18px 25px; text-align: center; color: var(--muted); font-size: 12px; }
+
+@media (max-width: 900px) {
+    .nav { width: 100%; }
+    .stats { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .filters { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+
+@media (max-width: 600px) {
+    .topbar { padding: 14px; }
+    .brand { font-size: 21px; }
+    .nav-link { font-size: 11px; padding: 9px 10px; }
+    main { width: 94%; margin-top: 20px; }
+    .panel { padding: 15px; }
+    .stats { gap: 8px; }
+    .stat { padding: 13px; }
+    .stat-value { font-size: 22px; }
+    .filters { grid-template-columns: 1fr; }
+    .search-input { max-width: none; }
+    .tool-row { align-items: stretch; }
+    .button-row { width: 100%; }
+    .button-row button { flex: 1; }
+}
+
+@media (max-width: 390px) {
+    .stats { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <div class="brand">
+        Attend<span>IQ</span>
+        <small>Teacher workspace · Attendance management</small>
+    </div>
+
+    <nav class="nav" aria-label="Teacher navigation">
+        <a class="nav-link" href="/teacher.html">Mark Attendance</a>
+        <a class="nav-link" href="/teacher-analytics.html">Analytics</a>
+        <a class="nav-link" href="/teacher-correction-requests.html">
+            Corrections <span class="badge-count" id="pendingBadge" hidden>0</span>
+        </a>
+        <a class="nav-link" href="/notifications.html">Notifications</a>
+        <a class="nav-link" href="/audit-log.html">Audit Log</a>
+        <button class="danger" id="logoutButton" type="button">Log out</button>
+    </nav>
+</header>
+
+<main>
+    <section class="page-heading">
+        <div>
+            <h1>Mark Attendance</h1>
+            <div class="muted">
+                Choose a class, set attendance for each student, and save the records to MySQL.
+            </div>
+        </div>
+        <div class="muted" id="teacherIdentity"></div>
+    </section>
+
+    <div id="message" class="message" role="status"></div>
+
+    <section class="stats">
+        <article class="stat">
+            <div class="stat-label">Students loaded</div>
+            <div class="stat-value" id="studentCount">—</div>
+        </article>
+        <article class="stat">
+            <div class="stat-label">Marked in this form</div>
+            <div class="stat-value" id="markedCount">0</div>
+        </article>
+        <article class="stat">
+            <div class="stat-label">Saved successfully</div>
+            <div class="stat-value" id="savedCount">0</div>
+        </article>
+    </section>
+
+    <section class="panel">
+        <h2>Class details</h2>
+
+        <div class="filters">
+            <div class="field">
+                <label for="subject">Subject</label>
+                <select id="subject" required>
+                    <option value="">Choose subject</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Programming in C">Programming in C</option>
+                    <option value="Engineering Physics">Engineering Physics</option>
+                    <option value="Engineering Chemistry">Engineering Chemistry</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="attendanceDate">Attendance date</label>
+                <input id="attendanceDate" type="date" required>
+            </div>
+
+            <div class="field">
+                <label for="classSession">Class session</label>
+                <select id="classSession" required>
+                    <option value="">Choose session</option>
+                    <option value="Morning">Morning</option>
+                    <option value="Afternoon">Afternoon</option>
+                    <option value="Evening">Evening</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="tool-row" style="margin-top:0;margin-bottom:17px">
+            <div>
+                <h2 style="margin-bottom:5px">Student list</h2>
+                <div class="muted">Select Present or Absent for each student before saving.</div>
+            </div>
+            <input class="search-input" id="studentSearch" type="search"
+                   placeholder="Search name, username or roll number"
+                   aria-label="Search students">
+        </div>
+
+        <div class="button-row" style="margin-bottom:17px">
+            <button class="light" type="button" id="markAllPresentButton">Mark All Present</button>
+            <button class="light" type="button" id="clearMarksButton">Clear Marks</button>
+            <button class="light" type="button" id="reloadStudentsButton">Reload Students ↻</button>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Username</th>
+                    <th>Roll number</th>
+                    <th>Attendance status</th>
+                </tr>
+                </thead>
+                <tbody id="studentsTable">
+                <tr><td colspan="4" class="empty">Loading students…</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="studentEmpty" class="empty" style="display:none;margin-top:12px">
+            No students match this search.
+        </div>
+
+        <div class="tool-row">
+            <div class="muted" id="saveDescription">
+                Select the subject, date, session and student statuses before saving.
+            </div>
+            <button class="primary" id="saveAttendanceButton" type="button">
+                Save Attendance
+            </button>
+        </div>
+    </section>
+</main>
+
+<footer>AttendIQ · Teacher attendance workspace</footer>
+
+<script>
+(() => {
+    "use strict";
+
+    const $ = id => document.getElementById(id);
+
+    let user = null;
+    let students = [];
+    let statusByUsername = new Map();
+    let savedKeys = new Set();
+    let saving = false;
+    let savedThisPage = 0;
+
+    try {
+        user = JSON.parse(sessionStorage.getItem("attendiqUser") || "null");
+    } catch {
+        user = null;
+    }
+
+    if (!user || !user.username ||
+        String(user.role || "").toUpperCase() !== "TEACHER") {
+        window.location.replace("/");
+        return;
+    }
+
+    $("teacherIdentity").textContent =
+        "Signed in as " + String(user.name || user.username);
+
+    const today = new Date();
+    $("attendanceDate").value =
+        today.getFullYear() + "-" +
+        String(today.getMonth() + 1).padStart(2, "0") + "-" +
+        String(today.getDate()).padStart(2, "0");
+
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[char]));
+    }
+
+    function showMessage(message, type = "info") {
+        $("message").textContent = message;
+        $("message").className = "message " + type;
+    }
+
+    function clearMessage() {
+        $("message").textContent = "";
+        $("message").className = "message";
+    }
+
+    function updateCounts() {
+        let marked = 0;
+
+        for (const status of statusByUsername.values()) {
+            if (status === "PRESENT" || status === "ABSENT") marked++;
+        }
+
+        $("studentCount").textContent = students.length;
+        $("markedCount").textContent = marked;
+        $("savedCount").textContent = savedThisPage;
+    }
+
+    async function apiJSON(url, options = {}) {
+        const response = await fetch(url, {
+            credentials: "same-origin",
+            cache: "no-store",
+            ...options,
+            headers: {
+                "Accept": "application/json",
+                ...(options.headers || {})
+            }
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.status === 401) {
+            sessionStorage.removeItem("attendiqUser");
+            window.location.replace("/");
+            throw new Error("Your session has expired. Please log in again.");
+        }
+
+        if (!response.ok) {
+            throw new Error(data.message || `Request failed (HTTP ${response.status}).`);
+        }
+
+        return data;
+    }
+
+    async function loadStudents() {
+        clearMessage();
+
+        $("reloadStudentsButton").disabled = true;
+        $("reloadStudentsButton").textContent = "Loading…";
+        $("studentsTable").innerHTML =
+            '<tr><td colspan="4" class="empty">Loading students…</td></tr>';
+
+        try {
+            const data = await apiJSON("/api/attendance/students");
+
+            students = Array.isArray(data)
+                ? data
+                : (Array.isArray(data.students) ? data.students : []);
+
+            students = students.filter(student =>
+                student && student.username
+            );
+
+            statusByUsername = new Map(
+                students.map(student => [student.username, ""])
+            );
+
+            renderStudents();
+            updateCounts();
+
+            if (!students.length) {
+                showMessage("No students were returned by the attendance API.", "info");
+            }
+        } catch (error) {
+            $("studentsTable").innerHTML =
+                `<tr><td colspan="4" class="empty">${escapeHTML(error.message)}</td></tr>`;
+            showMessage(error.message || "Could not load students.", "error");
+        } finally {
+            $("reloadStudentsButton").disabled = false;
+            $("reloadStudentsButton").textContent = "Reload Students ↻";
+        }
+    }
+
+    function renderStudents() {
+        const search = $("studentSearch").value.trim().toLowerCase();
+
+        const filtered = students.filter(student => {
+            const text = [
+                student.name,
+                student.username,
+                student.rollNumber,
+                student.department,
+                student.year
+            ].join(" ").toLowerCase();
+
+            return text.includes(search);
+        });
+
+        $("studentEmpty").style.display = filtered.length ? "none" : "block";
+
+        if (!filtered.length) {
+            $("studentsTable").innerHTML = "";
+            return;
+        }
+
+        $("studentsTable").innerHTML = filtered.map(student => {
+            const status = statusByUsername.get(student.username) || "";
+
+            const key = [
+                student.username,
+                $("subject").value,
+                $("attendanceDate").value,
+                $("classSession").value
+            ].join("|");
+
+            const alreadySaved = savedKeys.has(key);
+
+            return `
+                <tr>
+                    <td>
+                        <div class="student-name">${escapeHTML(student.name || student.username)}</div>
+                        <div class="student-meta">
+                            ${escapeHTML(student.department || "")}
+                            ${student.year != null ? " · Year " + escapeHTML(student.year) : ""}
+                        </div>
+                    </td>
+                    <td>${escapeHTML(student.username)}</td>
+                    <td>${escapeHTML(student.rollNumber || "—")}</td>
+                    <td>
+                        <select class="status-select"
+                                data-student-status="${escapeHTML(student.username)}"
+                                aria-label="Attendance status for ${escapeHTML(student.name || student.username)}"
+                                ${alreadySaved ? "disabled" : ""}>
+                            <option value="" ${!status ? "selected" : ""}>
+                                ${alreadySaved ? "Already saved" : "Select status"}
+                            </option>
+                            <option value="PRESENT" ${status === "PRESENT" ? "selected" : ""}>Present</option>
+                            <option value="ABSENT" ${status === "ABSENT" ? "selected" : ""}>Absent</option>
+                        </select>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+    }
+
+    function currentClassKey() {
+        return [
+            $("subject").value,
+            $("attendanceDate").value,
+            $("classSession").value
+        ].join("|");
+    }
+
+    function classDetailsValid() {
+        if (!$("subject").value) {
+            showMessage("Please choose a subject.", "error");
+            $("subject").focus();
+            return false;
+        }
+
+        if (!$("attendanceDate").value) {
+            showMessage("Please choose an attendance date.", "error");
+            $("attendanceDate").focus();
+            return false;
+        }
+
+        if (!$("classSession").value) {
+            showMessage("Please choose a class session.", "error");
+            $("classSession").focus();
+            return false;
+        }
+
+        return true;
+    }
+
+    async function saveAttendance() {
+        if (saving) return;
+
+        clearMessage();
+
+        if (!classDetailsValid()) return;
+
+        const selectedStudents = students.filter(student => {
+            const status = statusByUsername.get(student.username);
+            return status === "PRESENT" || status === "ABSENT";
+        });
+
+        if (!selectedStudents.length) {
+            showMessage("Choose Present or Absent for at least one student.", "error");
+            return;
+        }
+
+        const key = currentClassKey();
+
+        const unsavedStudents = selectedStudents.filter(student =>
+            !savedKeys.has([student.username, key].join("|"))
+        );
+
+        if (!unsavedStudents.length) {
+            showMessage("All selected records for this class have already been saved from this page.", "info");
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `Save attendance for ${unsavedStudents.length} student(s)?\n\n` +
+            `Subject: ${$("subject").value}\n` +
+            `Date: ${$("attendanceDate").value}\n` +
+            `Session: ${$("classSession").value}\n\n` +
+            "Please check the selected statuses before continuing."
+        );
+
+        if (!confirmed) return;
+
+        saving = true;
+
+        const button = $("saveAttendanceButton");
+        button.disabled = true;
+        button.textContent = "Saving…";
+
+        let successCount = 0;
+        const failures = [];
+
+        try {
+            for (const student of unsavedStudents) {
+                const selectedStatus = statusByUsername.get(student.username);
+
+                try {
+                    await apiJSON("/api/attendance/mark", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            username: student.username,
+                            subject: $("subject").value,
+                            date: $("attendanceDate").value,
+                            status: selectedStatus,
+                            classSession: $("classSession").value
+                        })
+                    });
+
+                    savedKeys.add([student.username, key].join("|"));
+                    statusByUsername.set(student.username, "");
+                    successCount++;
+                    savedThisPage++;
+                } catch (error) {
+                    failures.push(`${student.username}: ${error.message}`);
+                }
+            }
+
+            updateCounts();
+            renderStudents();
+
+            if (!failures.length) {
+                showMessage(
+                    `Attendance saved successfully for ${successCount} student(s).`,
+                    "success"
+                );
+                $("saveDescription").textContent =
+                    `${successCount} attendance record(s) saved successfully.`;
+            } else {
+                const summary = `Saved ${successCount} record(s). ${failures.length} failed.\n` +
+                    failures.slice(0, 8).join("\n") +
+                    (failures.length > 8 ? "\n…and more errors." : "");
+
+                showMessage(summary, successCount ? "info" : "error");
+                $("saveDescription").textContent =
+                    "Some records could not be saved. Review the errors, fix the issue, and retry.";
+            }
+        } finally {
+            saving = false;
+            button.disabled = false;
+            button.textContent = "Save Attendance";
+        }
+    }
+
+    $("studentsTable").addEventListener("change", event => {
+        const select = event.target.closest("[data-student-status]");
+        if (!select) return;
+
+        const username = select.getAttribute("data-student-status");
+        statusByUsername.set(username, select.value);
+        updateCounts();
+    });
+
+    $("studentSearch").addEventListener("input", renderStudents);
+
+    $("markAllPresentButton").addEventListener("click", () => {
+        if (!classDetailsValid()) return;
+
+        const key = currentClassKey();
+
+        for (const student of students) {
+            if (!savedKeys.has([student.username, key].join("|"))) {
+                statusByUsername.set(student.username, "PRESENT");
+            }
+        }
+
+        renderStudents();
+        updateCounts();
+        clearMessage();
+    });
+
+    $("clearMarksButton").addEventListener("click", () => {
+        statusByUsername = new Map(
+            students.map(student => [student.username, ""])
+        );
+
+        renderStudents();
+        updateCounts();
+        clearMessage();
+    });
+
+    $("reloadStudentsButton").addEventListener("click", loadStudents);
+    $("saveAttendanceButton").addEventListener("click", saveAttendance);
+
+    // Refresh the pending correction badge without blocking attendance marking.
+    async function updatePendingBadge() {
+        const badge = $("pendingBadge");
+
+        try {
+            const data = await apiJSON(
+                "/api/attendance/correction-requests?status=PENDING"
+            );
+
+            const count = Array.isArray(data.requests) ? data.requests.length : 0;
+
+            badge.textContent = count > 99 ? "99+" : String(count);
+            badge.hidden = count === 0;
+            badge.title = `${count} pending correction request(s)`;
+        } catch (error) {
+            // A badge failure should not block the core marking page.
+            badge.hidden = true;
+            console.warn("Could not load pending correction count:", error.message);
+        }
+    }
+
+    $("subject").addEventListener("change", renderStudents);
+    $("attendanceDate").addEventListener("change", renderStudents);
+    $("classSession").addEventListener("change", renderStudents);
+
+    $("logoutButton").addEventListener("click", async () => {
+        const button = $("logoutButton");
+        button.disabled = true;
+        button.textContent = "Logging out…";
+
+        try {
+            await fetch("/api/auth/logout", {
+                method: "POST",
+                credentials: "same-origin"
+            });
+        } finally {
+            sessionStorage.removeItem("attendiqUser");
+            window.location.replace("/");
+        }
+    });
+
+    loadStudents();
+    updatePendingBadge();
+})();
+</script>
+
+</body>
+</html>

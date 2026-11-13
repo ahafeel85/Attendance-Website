@@ -1,0 +1,1327 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101a33">
+<title>AttendIQ | Student Dashboard</title>
+
+<style>
+:root {
+  --navy:#101a33;
+  --teal:#13b8a6;
+  --teal-dark:#087f73;
+  --bg:#f4f7fb;
+  --text:#192640;
+  --muted:#7c899f;
+  --border:#e6ebf2;
+  --green:#12825e;
+  --red:#c94655;
+  --amber:#a96908;
+  --shadow:0 8px 28px rgba(23,39,72,.045);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 Inter,"Segoe UI",Arial,sans-serif}
+button,input{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px clamp(16px,4vw,60px);color:white;background:var(--navy);box-shadow:0 4px 20px #101a3320}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;color:#073a36;background:linear-gradient(135deg,#9df6df,#18bea8);font-size:23px;font-weight:900}
+.brand h1{margin:0;font-size:20px;letter-spacing:-.7px}
+.brand p{margin:2px 0 0;color:#aab8ce;font-size:10px;letter-spacing:1.3px}
+.top-right{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.server-status{color:#d0deed;font-size:11px}
+.dot{display:inline-block;width:7px;height:7px;margin-right:6px;border-radius:50%;background:#37dfac}
+.profile{display:flex;align-items:center;gap:9px;padding-left:12px;border-left:1px solid #ffffff24}
+.avatar{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:#263c59;color:#d9fff6;font-weight:800}
+.profile-name{max-width:150px;overflow:hidden;font-size:12px;font-weight:750;text-overflow:ellipsis;white-space:nowrap}
+.profile-role{color:#aab8ce;font-size:10px}
+.logout,.calendar-link{padding:9px 11px;border:1px solid #ffffff33;border-radius:9px;font-size:10px;font-weight:800;text-decoration:none;white-space:nowrap}
+.logout{color:white;background:transparent}
+.logout:hover{background:#273653}
+.calendar-link{color:#d9fff6;background:#087f73}
+.calendar-link:hover{background:#06675e}
+.page{width:min(1260px,100%);margin:auto;padding:32px clamp(14px,4vw,48px) 48px}
+.welcome{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:24px}
+.eyebrow{margin:0 0 8px;color:var(--teal-dark);font-size:10px;font-weight:850;letter-spacing:1.6px}
+.page-title{margin:0;color:var(--navy);font-size:clamp(25px,3vw,33px);letter-spacing:-1px;line-height:1.2}
+.subtitle{margin:8px 0 0;color:var(--muted);font-size:12px}
+.date-chip{padding:10px 13px;border:1px solid var(--border);border-radius:10px;background:white;color:#596780;font-size:11px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.stat,.panel{min-width:0;border:1px solid var(--border);border-radius:17px;background:white;box-shadow:var(--shadow)}
+.stat{padding:19px}
+.stat-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:17px}
+.stat-label{color:#718098;font-size:11px;font-weight:700}
+.stat-icon{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;font-size:17px}
+.teal{color:#087f73;background:#e4faf5}
+.green{color:#13835f;background:#e8f8ef}
+.red{color:#c94655;background:#fff0f1}
+.blue{color:#3c68c9;background:#edf2ff}
+.stat-value{margin:0;color:var(--navy);font-size:clamp(25px,3vw,32px);font-weight:850;letter-spacing:-.8px;overflow-wrap:anywhere}
+.stat-note{margin:8px 0 0;color:#8793a7;font-size:10px}
+.track{height:7px;overflow:hidden;margin-top:13px;border-radius:20px;background:#edf1f6}
+.fill{height:100%;width:0;border-radius:20px;background:linear-gradient(90deg,#0da995,#65dfc5);transition:width .5s}
+.fill.low{background:linear-gradient(90deg,#e4a338,#f4ca72)}
+.columns{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:18px;margin-bottom:20px}
+.panel{padding:22px}
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}
+.panel-title{margin:0;color:var(--navy);font-size:15px;font-weight:850}
+.panel-sub{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.7}
+.tag{flex-shrink:0;padding:6px 9px;border-radius:8px;color:#087f73;background:#e8faf6;font-size:9px;font-weight:850;letter-spacing:.5px}
+.subject-list{display:grid;gap:19px}
+.subject-row{min-width:0}
+.subject-top{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px}
+.subject-name{color:#26334c;font-size:12px;font-weight:750;overflow-wrap:anywhere}
+.subject-count{margin-top:3px;color:#8994a7;font-size:10px}
+.subject-pct{flex-shrink:0;color:var(--navy);font-size:12px;font-weight:850}
+.subject-track{height:7px;overflow:hidden;border-radius:20px;background:#edf1f6}
+.subject-fill{height:100%;width:0;border-radius:20px;background:linear-gradient(90deg,#0da995,#65dfc5)}
+.subject-fill.low{background:linear-gradient(90deg,#e4a338,#f4ca72)}
+.empty{padding:23px 15px;border:1px dashed #dfe6ef;border-radius:12px;color:#7c899f;background:#fafcff;font-size:11px;line-height:1.8;text-align:center}
+.insight-box{padding:17px;border:1px solid #d9f1eb;border-radius:13px;background:linear-gradient(135deg,#f1fcf9,#f9fffd)}
+.insight-box h3{margin:0 0 9px;color:#174c46;font-size:12px}
+.insight-box p{margin:0;color:#53736e;font-size:11px;line-height:1.85}
+.target-box{margin-top:14px;padding:15px;border:1px solid var(--border);border-radius:12px}
+.target-label{color:#79869a;font-size:10px;font-weight:750}
+.target-value{margin:5px 0;color:var(--navy);font-size:23px;font-weight:850}
+.target-note{margin:0;color:#8793a7;font-size:10px;line-height:1.7}
+.warning-panel{margin:24px 0}
+.warning-header{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:8px}
+.warning-header h2{margin:0;color:var(--navy);font-size:18px;letter-spacing:-.4px}
+.warning-header p{margin:6px 0 0;color:var(--muted);font-size:11px;line-height:1.7}
+.warning-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:20px}
+.warning-card{min-width:0;padding:17px;border:1px solid #f1dbb3;border-radius:14px;background:linear-gradient(135deg,#fffaf0,#fff)}
+.warning-card.high{border-color:#f3c5c9;background:linear-gradient(135deg,#fff5f5,#fff)}
+.warning-card.safe{border-color:#ccefe2;background:linear-gradient(135deg,#f2fcf8,#fff)}
+.warning-card h3{margin:0;overflow-wrap:anywhere;color:#28344b;font-size:13px}
+.warning-top{display:flex;align-items:flex-start;justify-content:space-between;gap:9px}
+.warning-badge{flex-shrink:0;padding:5px 8px;border-radius:20px;color:var(--amber);background:#fff5e2;font-size:9px;font-weight:850}
+.warning-badge.high{color:var(--red);background:#fff0f1}
+.warning-badge.safe{color:var(--green);background:#e8f8ef}
+.warning-pct{margin:13px 0 5px;color:var(--navy);font-size:24px;font-weight:900}
+.warning-details{margin:0;color:#66748a;font-size:11px;line-height:1.8}
+.warning-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:14px}
+.warning-ai-button{padding:9px 11px;border:0;border-radius:9px;color:white;background:var(--teal-dark);font-size:10px;font-weight:800}
+.warning-ai-button:hover{background:#06675e}
+.warning-secondary{padding:8px 0;border:0;color:#607088;background:transparent;font-size:10px;font-weight:750}
+.section-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin:30px 0 14px}
+.section-heading h2{margin:0;color:var(--navy);font-size:17px;letter-spacing:-.4px}
+.section-heading p{margin:5px 0 0;color:var(--muted);font-size:11px}
+.section-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.link-button{padding:0;border:0;color:var(--teal-dark);background:transparent;font-size:11px;font-weight:800}
+.export-button{padding:10px 13px;border:1px solid #bce8de;border-radius:9px;color:#087f73;background:#eafaf6;font-size:11px;font-weight:850;transition:background .2s,transform .2s}
+.export-button:hover{transform:translateY(-1px);background:#d9f6ef}
+.export-button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.table-panel{overflow:hidden;padding:0}
+.table-scroll{width:100%;overflow-x:auto}
+table{width:100%;border-collapse:collapse;text-align:left;white-space:nowrap}
+thead{background:#f8fafd}
+th{padding:14px 18px;border-bottom:1px solid var(--border);color:#7d899d;font-size:9px;font-weight:850;letter-spacing:.7px;text-transform:uppercase}
+td{padding:15px 18px;border-bottom:1px solid #eef1f6;color:#536078;font-size:11px}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#fbfcfe}
+.table-subject{color:#27344c;font-weight:750}
+.status-pill{display:inline-flex;padding:5px 9px;border-radius:20px;font-size:9px;font-weight:850}
+.status-pill.present{color:#11805c;background:#e7f8ef}
+.status-pill.absent{color:#c84956;background:#fff0f1}
+.status-pill.late{color:#a56c0d;background:#fff5df}
+.status-pill.other{color:#68768d;background:#eef2f7}
+.table-empty{padding:30px 18px;color:#8490a4;text-align:center;white-space:normal}
+.calendar-link{padding:9px 12px;border:1px solid #ffffff33;border-radius:9px;color:#d9fff6;background:#087f73;text-decoration:none;font-size:11px;font-weight:800;white-space:nowrap}
+.calendar-link:hover{background:#06675e}
+.monthly-report-panel{margin-top:24px}
+.report-controls{display:flex;align-items:end;flex-wrap:wrap;gap:12px}
+.report-month-field{display:grid;gap:6px;min-width:180px}
+.report-month-field label{color:var(--muted);font-size:10px;font-weight:800}
+.report-month-field input{min-width:180px;padding:10px 12px;border:1px solid #dfe7ef;border-radius:9px;color:var(--text);background:#fff;font:inherit;outline-color:var(--teal)}
+.report-help{margin:12px 0 0;color:#8793a7;font-size:10px;line-height:1.8}
+#printReport{display:none}
+.ai-panel{margin-top:24px}
+.ai-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:19px}
+.ai-brand{display:flex;align-items:center;gap:12px}
+.ai-logo{display:grid;place-items:center;flex-shrink:0;width:45px;height:45px;border-radius:14px;color:#063c39;background:linear-gradient(135deg,#a4ffe7,#35d1b6);font-size:24px;animation:float 3s ease-in-out infinite}
+.ai-title{margin:0;color:var(--navy);font-size:17px;font-weight:850}
+.ai-sub{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.7}
+.ai-tag{flex-shrink:0;padding:7px 10px;border:1px solid #c9eee5;border-radius:20px;color:#087f73;background:#effcf8;font-size:9px;font-weight:900;letter-spacing:.7px}
+.ai-window{display:flex;flex-direction:column;gap:13px;min-height:190px;max-height:390px;overflow-y:auto;padding:15px;border:1px solid #e5ebf2;border-radius:13px;background:#f9fbfd;scroll-behavior:smooth}
+.message{display:flex;max-width:100%;animation:appear .2s ease both}
+.message.user{justify-content:flex-end}
+.bubble{max-width:min(88%,680px);padding:12px 14px;border:1px solid #e1e8f0;border-radius:13px 13px 13px 4px;color:#35435a;background:white;font-size:12px;line-height:1.85;white-space:pre-wrap;overflow-wrap:anywhere}
+.message.user .bubble{border-color:#b4ece0;border-radius:13px 13px 4px 13px;color:#073d38;background:#e4faf4}
+.message.pending .bubble{color:#78869a;font-style:italic}
+.quick-title{margin:17px 0 9px;color:#7d899d;font-size:10px;font-weight:850;letter-spacing:.7px;text-transform:uppercase}
+.quick-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.quick-button{padding:9px 11px;border:1px solid #dfe7ef;border-radius:9px;color:#58657b;background:white;font-size:10px;font-weight:700}
+.quick-button:hover{border-color:#8adfce;color:var(--teal-dark)}
+.ai-form{display:flex;align-items:center;gap:9px;padding:7px;border:1px solid #dce5ed;border-radius:13px;background:white}
+.ai-form:focus-within{border-color:#4bcfba;box-shadow:0 0 0 4px #13b8a614}
+.ai-input{width:100%;min-width:0;min-height:42px;padding:10px;border:0;outline:none;color:var(--text);background:transparent;font-size:12px}
+.ai-send{display:grid;place-items:center;flex-shrink:0;width:43px;height:43px;border:0;border-radius:10px;color:white;background:linear-gradient(110deg,#087f73,#12ae99);font-size:22px;font-weight:800}
+.ai-note{margin:10px 0 0;color:#929eaf;font-size:10px;line-height:1.8}
+.footer{padding:27px 0 3px;color:#9aa5b7;font-size:10px;text-align:center}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes appear{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:950px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.columns{grid-template-columns:1fr}}
+@media(max-width:650px){
+  .topbar{padding:12px 14px}
+  .brand h1{font-size:18px}
+  .brand-mark{width:38px;height:38px}
+  .brand p,.server-status,.profile-info{display:none}
+  .top-right{gap:7px}
+  .profile{padding-left:0;border-left:0}
+  .logout,.calendar-link{padding:8px 9px;font-size:9px}
+  .page{padding:24px 13px 35px}
+  .welcome{align-items:flex-start;flex-direction:column;gap:12px}
+  .stat{padding:14px;border-radius:14px}
+  .stat-top{align-items:flex-start;margin-bottom:13px}
+  .stat-label{font-size:10px}
+  .stat-icon{width:32px;height:32px}
+  .panel{padding:16px;border-radius:14px}
+  .warning-list{grid-template-columns:1fr}
+  .warning-header{flex-direction:column}
+  .warning-panel{padding:16px}
+  .ai-heading{flex-wrap:wrap}
+  .ai-window{padding:10px}
+  .bubble{max-width:95%;font-size:11px}
+  th,td{padding:12px}
+  .section-heading{align-items:flex-start;flex-direction:column}
+  .report-controls{align-items:stretch}
+  .report-month-field,.report-month-field input{width:100%;min-width:0}
+  .report-controls .export-button{width:100%}
+}
+@media(max-width:350px){.stats{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media print{
+  @page{size:A4 portrait;margin:12mm}
+  body.printing-report{background:#fff!important;color:#111!important;font:10pt/1.4 Arial,sans-serif!important}
+  body.printing-report>:not(#printReport){display:none!important}
+  body.printing-report #printReport{display:block!important;visibility:visible!important;width:100%;margin:0;padding:0;border:0;background:#fff!important;color:#111!important;box-shadow:none!important}
+  body.printing-report #printReport *{visibility:visible!important;box-shadow:none!important}
+  #printReport .report-top{border-bottom:2px solid #087f73;padding-bottom:12px;margin-bottom:16px}
+  #printReport .report-brand{font-size:10pt;color:#087f73;font-weight:800;letter-spacing:1.2px}
+  #printReport .report-title{margin:5px 0;font-size:22pt;line-height:1.15;color:#101a33}
+  #printReport .report-meta{margin-top:7px;color:#4f5b6d;font-size:9pt;line-height:1.6}
+  #printReport .report-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0}
+  #printReport .report-stat{border:1px solid #d8e1eb;border-radius:7px;padding:9px}
+  #printReport .report-stat-label{font-size:8pt;color:#556174}
+  #printReport .report-stat-value{margin-top:4px;font-size:16pt;font-weight:800;color:#101a33;overflow-wrap:anywhere}
+  #printReport .report-section-title{font-size:12pt;margin:18px 0 8px;color:#101a33}
+  #printReport .report-table{width:100%;border-collapse:collapse;white-space:normal;table-layout:auto}
+  #printReport .report-table th,#printReport .report-table td{border:1px solid #d8e1eb;padding:6px 7px;text-align:left;font-size:8.5pt;white-space:normal;overflow-wrap:anywhere}
+  #printReport .report-table th{background:#edf3f7!important;color:#20304a;font-weight:800}
+  #printReport .report-note{margin-top:16px;padding-top:8px;border-top:1px solid #d8e1eb;font-size:8pt;color:#566174}
+  #printReport tr{break-inside:avoid;page-break-inside:avoid}
+}
+</style>
+</head>
+
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">A</div>
+    <div>
+      <h1>AttendIQ</h1>
+      <p>Smart attendance management</p>
+    </div>
+  </div>
+
+  <div class="top-right">
+    <div class="server-status"><span class="dot"></span>Student workspace</div>
+    <a class="calendar-link" href="/student-calendar.html">Attendance Calendar ↗</a>
+    <a class="calendar-link" href="/student-correction-requests.html">Correction Requests ↗</a>
+    <a class="calendar-link" href="/notifications.html">Notifications ↗</a>
+    <a class="calendar-link" href="/attendance-recovery.html">Recovery Planner ↗</a>
+
+    <div class="profile">
+      <div class="avatar" id="profileAvatar">S</div>
+      <div class="profile-info">
+        <div class="profile-name" id="profileName">Student</div>
+        <div class="profile-role">Student account</div>
+      </div>
+    </div>
+
+    <button class="logout" id="logoutButton" type="button">Log out ↗</button>
+  </div>
+</header>
+
+<main class="page">
+  <section class="welcome">
+    <div>
+      <p class="eyebrow">STUDENT OVERVIEW</p>
+      <h2 class="page-title" id="welcomeTitle">Welcome back!</h2>
+      <p class="subtitle">Track attendance, spot subjects that need attention, and plan your next steps.</p>
+    </div>
+    <div class="date-chip" id="todayDate">Loading date...</div>
+  </section>
+
+  <section class="stats" aria-label="Attendance statistics">
+    <article class="stat">
+      <div class="stat-top"><span class="stat-label">Overall attendance</span><span class="stat-icon teal">◉</span></div>
+      <p class="stat-value" id="overallAttendance">--%</p>
+      <p class="stat-note" id="overallDescription">Loading your records</p>
+      <div class="track"><div class="fill" id="overallProgress"></div></div>
+    </article>
+    <article class="stat">
+      <div class="stat-top"><span class="stat-label">Present classes</span><span class="stat-icon green">✓</span></div>
+      <p class="stat-value" id="presentClasses">0</p>
+      <p class="stat-note">Classes marked present</p>
+    </article>
+    <article class="stat">
+      <div class="stat-top"><span class="stat-label">Absent classes</span><span class="stat-icon red">×</span></div>
+      <p class="stat-value" id="absentClasses">0</p>
+      <p class="stat-note">Classes marked absent</p>
+    </article>
+    <article class="stat">
+      <div class="stat-top"><span class="stat-label">Total classes</span><span class="stat-icon blue">▤</span></div>
+      <p class="stat-value" id="totalClasses">0</p>
+      <p class="stat-note">Recorded attendance entries</p>
+    </article>
+  </section>
+
+  <section class="columns">
+    <article class="panel">
+      <div class="panel-head">
+        <div>
+          <h2 class="panel-title">Subject-wise attendance</h2>
+          <p class="panel-sub">Review your attendance percentage for each subject.</p>
+        </div>
+        <span class="tag">LIVE DATA</span>
+      </div>
+      <div class="subject-list" id="subjectList">
+        <div class="empty">Loading subject records...</div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head">
+        <div>
+          <h2 class="panel-title">Attendance insights</h2>
+          <p class="panel-sub">A summary based on your saved records.</p>
+        </div>
+        <span class="tag">INSIGHTS</span>
+      </div>
+      <div class="insight-box">
+        <h3>✦ Your attendance insight</h3>
+        <p id="insightText" aria-live="polite">Loading your attendance summary...</p>
+      </div>
+      <div class="target-box">
+        <div class="target-label">75% ATTENDANCE REFERENCE</div>
+        <p class="target-value" id="targetValue">--</p>
+        <p class="target-note" id="targetNote">Calculating your target...</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="panel warning-panel">
+    <div class="warning-header">
+      <div>
+        <h2>⚠ Attendance warning centre</h2>
+        <p>Subjects below 75% appear here. Recovery estimates assume every future class is attended.</p>
+      </div>
+      <span class="tag">SMART ALERTS</span>
+    </div>
+    <div class="warning-list" id="warningList">
+      <div class="empty">Checking your subjects...</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-heading">
+      <div>
+        <h2>Recent attendance</h2>
+        <p>Export a CSV report for this student's attendance data received from the backend.</p>
+      </div>
+      <div class="section-actions">
+        <button class="link-button" id="refreshButton" type="button">Refresh ↻</button>
+        <button class="export-button" id="exportButton" type="button" disabled>↓ Export CSV</button>
+      </div>
+    </div>
+
+    <article class="panel table-panel">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Subject</th><th>Class session</th><th>Status</th></tr>
+          </thead>
+          <tbody id="recentRecords">
+            <tr><td class="table-empty" colspan="4">Loading attendance history...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <section class="panel monthly-report-panel" aria-labelledby="monthlyReportTitle">
+    <div class="panel-head">
+      <div>
+        <h2 class="panel-title" id="monthlyReportTitle">Monthly attendance report</h2>
+        <p class="panel-sub">Generate a month-specific report with subject totals and every class entry, then print it or save it as PDF.</p>
+      </div>
+      <span class="tag">PRINT / PDF</span>
+    </div>
+    <div class="report-controls">
+      <div class="report-month-field">
+        <label for="reportMonth">Choose report month</label>
+        <input type="month" id="reportMonth" required>
+      </div>
+      <button class="export-button" id="printMonthlyReportButton" type="button">Generate &amp; Print Report ↗</button>
+    </div>
+    <p class="report-help">The report uses saved records for the selected month. In the print dialog, choose “Save as PDF” to keep a PDF copy.</p>
+  </section>
+
+  <section class="panel ai-panel" id="aiAssistant">
+    <div class="ai-heading">
+      <div class="ai-brand">
+        <div class="ai-logo">✧</div>
+        <div>
+          <h2 class="ai-title">AttendIQ AI Assistant</h2>
+          <p class="ai-sub">Ask about your records or get personalised suggestions from Gemini AI.</p>
+        </div>
+      </div>
+      <span class="ai-tag">GEMINI AI</span>
+    </div>
+
+    <div class="ai-window" id="aiMessages" role="log" aria-live="polite" aria-relevant="additions">
+      <div class="message assistant">
+        <div class="bubble">Hello! 👋 I'm your AttendIQ AI assistant. I can explain your attendance, calculate how many classes you may need to attend to reach 75%, and suggest ways to improve subjects that need attention.</div>
+      </div>
+    </div>
+
+    <p class="quick-title">Try asking</p>
+    <div class="quick-actions">
+      <button class="quick-button" type="button" data-question="Summarise my current attendance and show the calculation briefly.">My attendance</button>
+      <button class="quick-button" type="button" data-question="For each subject below 75%, tell me how many consecutive classes I need to attend to reach 75%. Show the calculation.">Reach 75%</button>
+      <button class="quick-button" type="button" data-question="Analyse my saved attendance records and give me personalised advice for improving my weakest subjects.">Get advice</button>
+    </div>
+
+    <form class="ai-form" id="aiForm">
+      <input class="ai-input" id="aiQuestion" type="text" maxlength="1000" placeholder="Ask anything about your attendance..." autocomplete="off" required aria-label="Question for AttendIQ AI">
+      <button class="ai-send" id="aiSendButton" type="submit" aria-label="Send question">↑</button>
+    </form>
+    <p class="ai-note">AI can make mistakes. Verify important calculations and your college's official attendance policy. Never enter your password or API key here.</p>
+  </section>
+
+  <footer class="footer">AttendIQ · Student Attendance Management</footer>
+</main>
+
+<section id="printReport" aria-hidden="true"></section>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+  const state = { user: null, attendance: null, loadingAI: false };
+
+  function readUser() {
+    try {
+      const stored = sessionStorage.getItem("attendiqUser");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  state.user = readUser();
+
+  if (!state.user || !state.user.username) {
+    window.location.replace("/");
+    return;
+  }
+
+  const role = String(state.user.role || "").toUpperCase();
+
+  if (role && role !== "STUDENT") {
+    window.location.replace(role === "TEACHER" ? "/teacher.html" : "/");
+    return;
+  }
+
+  function numberValue(value, fallback = 0) {
+    if (value === null || value === undefined || value === "") return fallback;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function pickNumber(obj, keys, fallback = 0) {
+    for (const key of keys) {
+      if (obj && obj[key] !== undefined && obj[key] !== null && obj[key] !== "") {
+        return numberValue(obj[key], fallback);
+      }
+    }
+    return fallback;
+  }
+
+  function pick(obj, keys, fallback = "") {
+    for (const key of keys) {
+      if (obj && obj[key] !== undefined && obj[key] !== null && obj[key] !== "") {
+        return obj[key];
+      }
+    }
+    return fallback;
+  }
+
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, ch => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[ch]));
+  }
+
+  function percentageText(value) {
+    const n = Math.round(value * 10) / 10;
+    return `${Number.isInteger(n) ? n.toFixed(0) : n.toFixed(1)}%`;
+  }
+
+  function initials(name) {
+    const parts = String(name || "Student").trim().split(/\s+/).filter(Boolean);
+    if (parts.length < 2) return (parts[0] || "S").slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  function localDate(value) {
+    if (!value) return "—";
+
+    const raw = String(value);
+    const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+    const date = iso
+      ? new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]))
+      : new Date(raw);
+
+    if (Number.isNaN(date.getTime())) return raw;
+
+    return new Intl.DateTimeFormat("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    }).format(date);
+  }
+
+  function statusText(record) {
+    const status = String(pick(record, ["status", "attendanceStatus"], "Unknown"))
+      .trim().toUpperCase();
+
+    if (status === "P" || status === "PRESENT") return "Present";
+    if (status === "A" || status === "ABSENT") return "Absent";
+    if (status === "L" || status === "LATE") return "Late";
+
+    return status ? status.charAt(0) + status.slice(1).toLowerCase() : "Unknown";
+  }
+
+  function statusClass(status) {
+    const s = status.toLowerCase();
+    return ["present", "absent", "late"].includes(s) ? s : "other";
+  }
+
+  function countStatus(records, sought) {
+    return records.filter(r => statusText(r).toLowerCase() === sought).length;
+  }
+
+  function setUserHeader() {
+    const name = String(state.user.name || state.user.username || "Student");
+    $("profileName").textContent = name;
+    $("profileAvatar").textContent = initials(name);
+    $("welcomeTitle").textContent = `Welcome back, ${name.trim().split(/\s+/)[0]}!`;
+
+    $("todayDate").textContent = new Intl.DateTimeFormat("en-IN", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    }).format(new Date());
+  }
+
+  async function loadAttendance() {
+    const refresh = $("refreshButton");
+    refresh.disabled = true;
+    refresh.textContent = "Loading...";
+
+    try {
+      const response = await fetch("/api/attendance", {
+        method: "GET",
+        credentials: "same-origin",
+        headers: { "Accept": "application/json" },
+        cache: "no-store"
+      });
+
+      if (response.status === 401) {
+        sessionStorage.removeItem("attendiqUser");
+        window.location.replace("/");
+        return;
+      }
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`);
+
+      state.attendance = data;
+      $("exportButton").disabled = false;
+
+      if (data.name) {
+        $("profileName").textContent = data.name;
+        $("profileAvatar").textContent = initials(data.name);
+        $("welcomeTitle").textContent =
+          `Welcome back, ${String(data.name).trim().split(/\s+/)[0]}!`;
+      }
+
+      renderDashboard(data);
+    } catch (error) {
+      console.error("Attendance load failed:", error);
+      $("exportButton").disabled = true;
+
+      const message = error instanceof TypeError
+        ? "Cannot connect to Spring Boot. Make sure the backend is running."
+        : (error.message || "Could not load attendance.");
+
+      $("overallAttendance").textContent = "--%";
+      $("presentClasses").textContent = "—";
+      $("absentClasses").textContent = "—";
+      $("totalClasses").textContent = "—";
+      $("overallDescription").textContent = "Attendance unavailable";
+      $("overallProgress").style.width = "0%";
+      $("subjectList").innerHTML = `<div class="empty">${escapeHTML(message)}</div>`;
+      $("warningList").innerHTML = `<div class="empty">${escapeHTML(message)}</div>`;
+      $("insightText").textContent = message;
+      $("targetValue").textContent = "--";
+      $("targetNote").textContent = "Refresh after the backend is available.";
+      $("recentRecords").innerHTML =
+        `<tr><td class="table-empty" colspan="4">${escapeHTML(message)}</td></tr>`;
+    } finally {
+      refresh.disabled = false;
+      refresh.textContent = "Refresh ↻";
+    }
+  }
+
+  function extractRecords(data) {
+    if (Array.isArray(data.recentRecords)) return data.recentRecords;
+    if (Array.isArray(data.records)) return data.records;
+    return [];
+  }
+
+  function getSubjectStats(subject, records) {
+    const name = String(pick(subject, ["subject", "subjectName", "name", "title"], "Unnamed subject"));
+
+    const related = records.filter(r =>
+      String(pick(r, ["subject", "subjectName", "name"], "")).toLowerCase() === name.toLowerCase()
+    );
+
+    const total = Math.max(0, pickNumber(
+      subject, ["totalClasses", "totalSessions", "total", "classesHeld"], related.length
+    ));
+
+    const present = Math.max(0, pickNumber(
+      subject, ["presentClasses", "presentCount", "present"], countStatus(related, "present")
+    ));
+
+    const absent = Math.max(0, pickNumber(
+      subject, ["absentClasses", "absentCount", "absent"], countStatus(related, "absent")
+    ));
+
+    let pct = pickNumber(
+      subject, ["attendancePercentage", "percentage", "attendancePercent", "percent"],
+      total > 0 ? present / total * 100 : 0
+    );
+
+    if (pct > 0 && pct <= 1) pct *= 100;
+    pct = Math.max(0, Math.min(100, pct));
+
+    return { name, total, present, absent, pct };
+  }
+
+  function sessionsNeeded(present, total, target = 75) {
+    if (total <= 0) return null;
+    if (present / total * 100 >= target) return 0;
+
+    return Math.max(0, Math.ceil(
+      ((target / 100) * total - present) / (1 - target / 100) - 1e-10
+    ));
+  }
+
+  function renderDashboard(data) {
+    const records = extractRecords(data);
+
+    const total = Math.max(0, pickNumber(
+      data, ["totalClasses", "totalSessions", "total"], records.length
+    ));
+
+    const present = Math.max(0, pickNumber(
+      data, ["presentClasses", "presentCount", "totalPresent"], countStatus(records, "present")
+    ));
+
+    const absent = Math.max(0, pickNumber(
+      data, ["absentClasses", "absentCount", "totalAbsent"], countStatus(records, "absent")
+    ));
+
+    let pct = pickNumber(
+      data, ["attendancePercentage", "overallAttendance", "percentage"],
+      total ? present / total * 100 : 0
+    );
+
+    if (pct > 0 && pct <= 1) pct *= 100;
+    pct = Math.max(0, Math.min(100, pct));
+
+    $("overallAttendance").textContent = percentageText(pct);
+    $("presentClasses").textContent = present;
+    $("absentClasses").textContent = absent;
+    $("totalClasses").textContent = total;
+    $("overallProgress").style.width = `${pct}%`;
+    $("overallProgress").classList.toggle("low", pct < 75);
+
+    $("overallDescription").textContent = total === 0
+      ? "No attendance records saved yet"
+      : (pct >= 75
+          ? "At or above the 75% reference target"
+          : "Below the 75% reference target");
+
+    renderSubjects(data, records);
+    renderWarnings(data, records);
+    renderInsights(total, present, absent, pct);
+    renderRecent(records);
+  }
+
+  function renderSubjects(data, records) {
+    const subjects = Array.isArray(data.subjects) ? data.subjects : [];
+
+    if (!subjects.length) {
+      $("subjectList").innerHTML =
+        '<div class="empty">No subject summaries are available yet. Your teacher can save attendance records to populate this section.</div>';
+      return;
+    }
+
+    $("subjectList").innerHTML = subjects.slice(0, 20).map(subject => {
+      const s = getSubjectStats(subject, records);
+      const count = s.total
+        ? `${s.present} present out of ${s.total} counted classes`
+        : "No counted classes";
+
+      return `
+        <div class="subject-row">
+          <div class="subject-top">
+            <div>
+              <div class="subject-name">${escapeHTML(s.name)}</div>
+              <div class="subject-count">${escapeHTML(count)}</div>
+            </div>
+            <div class="subject-pct">${percentageText(s.pct)}</div>
+          </div>
+
+          <div class="subject-track" role="progressbar"
+               aria-label="${escapeHTML(s.name)} attendance"
+               aria-valuemin="0" aria-valuemax="100"
+               aria-valuenow="${Math.round(s.pct)}">
+            <div class="subject-fill ${s.pct < 75 ? "low" : ""}"
+                 style="width:${s.pct}%"></div>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  function renderWarnings(data, records) {
+    const host = $("warningList");
+    const subjects = Array.isArray(data.subjects) ? data.subjects : [];
+
+    if (!subjects.length) {
+      host.innerHTML =
+        '<div class="empty">Subject-wise recovery estimates need subject totals from your attendance API.</div>';
+      return;
+    }
+
+    const stats = subjects.map(s => getSubjectStats(s, records))
+      .filter(s => s.total > 0)
+      .sort((a, b) => a.pct - b.pct);
+
+    if (!stats.length) {
+      host.innerHTML =
+        '<div class="empty">There are no counted subject classes yet.</div>';
+      return;
+    }
+
+    const atRisk = stats.filter(s => s.pct < 75);
+
+    if (!atRisk.length) {
+      host.innerHTML = `
+        <article class="warning-card safe">
+          <div class="warning-top">
+            <h3>All tracked subjects are on target</h3>
+            <span class="warning-badge safe">ON TRACK</span>
+          </div>
+          <p class="warning-details" style="margin-top:10px">
+            Every subject with recorded classes is currently at or above 75%.
+            Continue attending consistently.
+          </p>
+        </article>`;
+      return;
+    }
+
+    host.innerHTML = atRisk.map(s => {
+      const needed = sessionsNeeded(s.present, s.total);
+      const highRisk = s.pct < 60;
+
+      return `
+        <article class="warning-card ${highRisk ? "high" : ""}">
+          <div class="warning-top">
+            <h3>${escapeHTML(s.name)}</h3>
+            <span class="warning-badge ${highRisk ? "high" : ""}">
+              ${highRisk ? "HIGH PRIORITY" : "NEEDS ATTENTION"}
+            </span>
+          </div>
+
+          <p class="warning-pct">${percentageText(s.pct)}</p>
+
+          <p class="warning-details">
+            ${s.present} present out of ${s.total} counted classes.
+            ${s.absent} absent.<br>
+            <strong>Recovery estimate: ${needed} upcoming class${needed === 1 ? "" : "es"}.</strong>
+            This assumes you attend every next class without any further absence.
+          </p>
+
+          <div class="warning-actions">
+            <button class="warning-ai-button" type="button"
+              data-warning-subject="${escapeHTML(s.name)}"
+              data-present="${s.present}" data-total="${s.total}"
+              data-percentage="${s.pct}">✦ Get AI advice</button>
+
+            <button class="warning-secondary" type="button"
+              data-copy-warning="${escapeHTML(s.name)}"
+              data-needed="${needed}">Copy estimate</button>
+          </div>
+        </article>`;
+    }).join("");
+  }
+
+  function renderInsights(total, present, absent, pct) {
+    if (!total) {
+      $("insightText").textContent = "No recorded classes are available to analyse yet.";
+      $("targetValue").textContent = "--";
+      $("targetNote").textContent = "A recovery estimate needs recorded classes.";
+      return;
+    }
+
+    if (pct >= 75) {
+      $("insightText").textContent =
+        `Your overall attendance is ${percentageText(pct)}, at or above the 75% reference target. Keep attending consistently.`;
+
+      $("targetValue").textContent = "On track";
+      $("targetNote").textContent =
+        "Review individual subjects as well. Your college's official attendance policy takes priority.";
+    } else {
+      const needed = sessionsNeeded(present, total);
+
+      $("insightText").textContent =
+        `Your overall attendance is ${percentageText(pct)}, below the 75% reference target. Prioritise upcoming classes and review the warning centre.`;
+
+      $("targetValue").textContent = `${needed} class${needed === 1 ? "" : "es"}`;
+      $("targetNote").textContent =
+        "Estimated consecutive classes needed to reach 75% overall, assuming every upcoming class is attended.";
+    }
+
+    if (absent > present) {
+      $("insightText").textContent += " Avoiding further absences is especially important.";
+    }
+  }
+
+  function renderRecent(records) {
+    if (!records.length) {
+      $("recentRecords").innerHTML =
+        '<tr><td class="table-empty" colspan="4">No attendance records saved yet.</td></tr>';
+      return;
+    }
+
+    $("recentRecords").innerHTML = records.slice(0, 10).map(record => {
+      const date = pick(record, ["attendanceDate", "date", "createdAt"], "");
+      const subject = pick(record, ["subject", "subjectName", "name"], "—");
+      const session = pick(record, ["classSession", "session", "period"], "—");
+      const status = statusText(record);
+
+      return `
+        <tr>
+          <td>${escapeHTML(localDate(date))}</td>
+          <td><span class="table-subject">${escapeHTML(subject)}</span></td>
+          <td>${escapeHTML(session)}</td>
+          <td><span class="status-pill ${statusClass(status)}">${escapeHTML(status)}</span></td>
+        </tr>`;
+    }).join("");
+  }
+
+  function csvCell(value) {
+    let text = String(value ?? "");
+
+    if (/^[\s]*[=+\-@]/.test(text)) {
+      text = "'" + text;
+    }
+
+    return '"' + text.replace(/"/g, '""') + '"';
+  }
+
+  function exportCSV() {
+    const data = state.attendance;
+
+    if (!data) {
+      alert("Attendance data has not loaded yet. Please refresh and try again.");
+      return;
+    }
+
+    const records = extractRecords(data);
+    const subjects = Array.isArray(data.subjects) ? data.subjects : [];
+
+    const total = Math.max(0, pickNumber(
+      data, ["totalClasses", "totalSessions", "total"], records.length
+    ));
+
+    const present = Math.max(0, pickNumber(
+      data, ["presentClasses", "presentCount", "totalPresent"], countStatus(records, "present")
+    ));
+
+    const absent = Math.max(0, pickNumber(
+      data, ["absentClasses", "absentCount", "totalAbsent"], countStatus(records, "absent")
+    ));
+
+    let pct = pickNumber(
+      data, ["attendancePercentage", "overallAttendance", "percentage"],
+      total ? present / total * 100 : 0
+    );
+
+    if (pct > 0 && pct <= 1) pct *= 100;
+
+    const rows = [
+      ["AttendIQ Attendance Report"],
+      ["Student", state.user.name || state.user.username],
+      ["Username", state.user.username],
+      ["Generated at", new Date().toLocaleString("en-IN")],
+      [],
+      ["OVERALL SUMMARY"],
+      ["Total recorded classes", total],
+      ["Present classes", present],
+      ["Absent classes", absent],
+      ["Attendance percentage", `${Math.round(pct * 10) / 10}%`],
+      ["Reference target", "75%"],
+      [],
+      ["SUBJECT SUMMARY"],
+      ["Subject", "Total classes", "Present", "Absent", "Attendance percentage", "Consecutive classes estimated to reach 75%"]
+    ];
+
+    subjects.forEach(subject => {
+      const s = getSubjectStats(subject, records);
+      const needed = s.total > 0 ? sessionsNeeded(s.present, s.total) : "N/A";
+
+      rows.push([
+        s.name, s.total, s.present, s.absent, percentageText(s.pct),
+        needed === null ? "N/A" : needed
+      ]);
+    });
+
+    rows.push([]);
+    rows.push(["ATTENDANCE RECORDS INCLUDED IN API RESPONSE"]);
+    rows.push(["Date", "Subject", "Class session", "Status"]);
+
+    records.forEach(record => {
+      rows.push([
+        pick(record, ["attendanceDate", "date", "createdAt"], ""),
+        pick(record, ["subject", "subjectName", "name"], ""),
+        pick(record, ["classSession", "session", "period"], ""),
+        statusText(record)
+      ]);
+    });
+
+    const csv = "\uFEFF" + rows.map(row => row.map(csvCell).join(",")).join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    const dateStamp = new Date().toISOString().slice(0, 10);
+    const safeUsername = String(state.user.username || "student")
+      .replace(/[^a-zA-Z0-9_-]/g, "_");
+
+    link.href = url;
+    link.download = `AttendIQ_${safeUsername}_${dateStamp}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function currentMonthInputValue() {
+    const date = new Date();
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+  }
+
+  function reportStatusClass(status) {
+    const value = String(status || "").toLowerCase();
+    if (value === "present") return "present";
+    if (value === "absent") return "absent";
+    return "other";
+  }
+
+  async function generateMonthlyReport() {
+    const monthValue = $("reportMonth").value;
+    const match = /^(\d{4})-(\d{2})$/.exec(monthValue);
+
+    if (!match) {
+      alert("Please choose the month for your report.");
+      return;
+    }
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+
+    if (month < 1 || month > 12 || year < 2000 || year > 2100) {
+      alert("Please choose a valid month.");
+      return;
+    }
+
+    const button = $("printMonthlyReportButton");
+    const previousLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = "Preparing report…";
+
+    try {
+      const params = new URLSearchParams({
+        year: String(year),
+        month: String(month)
+      });
+
+      const response = await fetch(`/api/attendance/calendar?${params.toString()}`, {
+        method: "GET",
+        credentials: "same-origin",
+        headers: { "Accept": "application/json" },
+        cache: "no-store"
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.status === 401) {
+        sessionStorage.removeItem("attendiqUser");
+        window.location.replace("/");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || `Report request failed (HTTP ${response.status}).`);
+      }
+
+      const student = data.student || {};
+      const records = Array.isArray(data.records) ? data.records : [];
+
+      const reportMonth = new Date(year, month - 1, 1).toLocaleDateString("en-IN", {
+        month: "long",
+        year: "numeric"
+      });
+
+      const present = records.filter(
+        record => statusText(record).toLowerCase() === "present"
+      ).length;
+
+      const absent = records.filter(
+        record => statusText(record).toLowerCase() === "absent"
+      ).length;
+
+      const other = records.length - present - absent;
+      const pct = records.length ? present / records.length * 100 : 0;
+      const subjectMap = new Map();
+
+      records.forEach(record => {
+        const subjectName = String(
+          pick(record, ["subject", "subjectName", "name"], "Unspecified")
+        );
+
+        if (!subjectMap.has(subjectName)) {
+          subjectMap.set(subjectName, { total: 0, present: 0, absent: 0, other: 0 });
+        }
+
+        const item = subjectMap.get(subjectName);
+        item.total++;
+
+        const status = statusText(record).toLowerCase();
+
+        if (status === "present") item.present++;
+        else if (status === "absent") item.absent++;
+        else item.other++;
+      });
+
+      const subjectRows = [...subjectMap.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([name, item]) => {
+          const subjectPct = item.total ? item.present / item.total * 100 : 0;
+
+          return `<tr>
+            <td>${escapeHTML(name)}</td>
+            <td>${item.total}</td>
+            <td>${item.present}</td>
+            <td>${item.absent}</td>
+            <td>${item.other}</td>
+            <td>${percentageText(subjectPct)}</td>
+          </tr>`;
+        }).join("");
+
+      const recordRows = records.map(record => {
+        const date = pick(record, ["date", "attendanceDate", "createdAt"], "");
+        const subject = pick(record, ["subject", "subjectName", "name"], "Unspecified");
+        const session = pick(record, ["classSession", "session", "period"], "—");
+        const status = statusText(record);
+
+        return `<tr>
+          <td>${escapeHTML(localDate(date))}</td>
+          <td>${escapeHTML(subject)}</td>
+          <td>${escapeHTML(session)}</td>
+          <td><span class="status-pill ${reportStatusClass(status)}">${escapeHTML(status)}</span></td>
+        </tr>`;
+      }).join("");
+
+      const generatedAt = new Date().toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      const recordsMarkup = recordRows ||
+        '<tr><td colspan="4">No attendance records were saved for this month.</td></tr>';
+
+      const subjectsMarkup = subjectRows ||
+        '<tr><td colspan="6">No subject records were saved for this month.</td></tr>';
+
+      $("printReport").innerHTML = `
+        <div class="report-top">
+          <div class="report-brand">ATTENDIQ · STUDENT ATTENDANCE MANAGEMENT</div>
+          <h1 class="report-title">Monthly Attendance Report</h1>
+          <div class="report-meta">
+            <strong>Report period:</strong> ${escapeHTML(reportMonth)}<br>
+            <strong>Student:</strong> ${escapeHTML(student.name || state.user.name || state.user.username || "Student")}<br>
+            <strong>Username:</strong> ${escapeHTML(student.username || state.user.username || "—")}<br>
+            ${student.rollNumber ? `<strong>Roll number:</strong> ${escapeHTML(student.rollNumber)}<br>` : ""}
+            ${student.department ? `<strong>Department:</strong> ${escapeHTML(student.department)}<br>` : ""}
+            <strong>Generated:</strong> ${escapeHTML(generatedAt)}
+          </div>
+        </div>
+
+        <div class="report-summary">
+          <div class="report-stat">
+            <div class="report-stat-label">Attendance percentage</div>
+            <div class="report-stat-value">${percentageText(pct)}</div>
+          </div>
+          <div class="report-stat">
+            <div class="report-stat-label">Recorded classes</div>
+            <div class="report-stat-value">${records.length}</div>
+          </div>
+          <div class="report-stat">
+            <div class="report-stat-label">Present</div>
+            <div class="report-stat-value">${present}</div>
+          </div>
+          <div class="report-stat">
+            <div class="report-stat-label">Absent</div>
+            <div class="report-stat-value">${absent}</div>
+          </div>
+        </div>
+
+        ${other ? `<div class="report-meta"><strong>Other / unrecognised statuses:</strong> ${other}</div>` : ""}
+
+        <h2 class="report-section-title">Subject-wise summary</h2>
+        <table class="report-table">
+          <thead>
+            <tr><th>Subject</th><th>Total</th><th>Present</th><th>Absent</th><th>Other</th><th>Attendance</th></tr>
+          </thead>
+          <tbody>${subjectsMarkup}</tbody>
+        </table>
+
+        <h2 class="report-section-title">Attendance records</h2>
+        <table class="report-table">
+          <thead>
+            <tr><th>Date</th><th>Subject</th><th>Class session</th><th>Status</th></tr>
+          </thead>
+          <tbody>${recordsMarkup}</tbody>
+        </table>
+
+        <p class="report-note">
+          The 75% figure is a reference target only. Confirm your institution's official attendance rules.
+          This report reflects the attendance records saved in AttendIQ for the selected month.
+        </p>
+      `;
+
+      document.body.classList.add("printing-report");
+      window.print();
+    } catch (error) {
+      console.error("Monthly report generation failed:", error);
+      alert(error.message || "Could not generate the monthly report. Please try again.");
+    } finally {
+      button.disabled = false;
+      button.textContent = previousLabel;
+    }
+  }
+
+  $("reportMonth").value = currentMonthInputValue();
+
+  $("printMonthlyReportButton").addEventListener("click", generateMonthlyReport);
+
+  window.addEventListener("afterprint", () => {
+    document.body.classList.remove("printing-report");
+  });
+
+  $("exportButton").addEventListener("click", exportCSV);
+
+  async function askAI(question) {
+    const clean = String(question || "").trim();
+
+    if (!clean || state.loadingAI) return;
+
+    if (clean.length > 1000) {
+      addMessage("Please keep your question under 1000 characters.", "assistant");
+      return;
+    }
+
+    state.loadingAI = true;
+    $("aiQuestion").disabled = true;
+    $("aiSendButton").disabled = true;
+    addMessage(clean, "user");
+
+    const pending = addMessage("Thinking... contacting Gemini AI.", "assistant pending");
+
+    try {
+      const response = await fetch("/api/ai/ask", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ question: clean })
+      });
+
+      const data = await response.json().catch(() => ({}));
+      pending.remove();
+
+      if (response.status === 401) {
+        sessionStorage.removeItem("attendiqUser");
+        window.location.replace("/");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || `AI request failed (HTTP ${response.status}).`);
+      }
+
+      const answer = String(data.answer || data.response || "").trim();
+      if (!answer) {
+        throw new Error("Gemini returned an empty answer. Please try again.");
+      }
+
+      addMessage(answer, "assistant");
+    } catch (error) {
+      pending.remove();
+      console.error("AI request error:", error);
+      addMessage(
+        error.message || "Could not reach Gemini. Check your backend, network, API key and model availability.",
+        "assistant"
+      );
+    } finally {
+      state.loadingAI = false;
+      $("aiQuestion").disabled = false;
+      $("aiSendButton").disabled = false;
+      $("aiQuestion").focus();
+    }
+  }
+
+  function addMessage(text, role) {
+    const line = document.createElement("div");
+    line.className = `message ${role}`;
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = text;
+
+    line.appendChild(bubble);
+    $("aiMessages").appendChild(line);
+    $("aiMessages").scrollTop = $("aiMessages").scrollHeight;
+
+    return line;
+  }
+
+  $("aiForm").addEventListener("submit", event => {
+    event.preventDefault();
+
+    const input = $("aiQuestion");
+    const question = input.value.trim();
+
+    if (!question || state.loadingAI) return;
+
+    input.value = "";
+    askAI(question);
+  });
+
+  document.querySelectorAll("[data-question]").forEach(button => {
+    button.addEventListener("click", () => {
+      askAI(button.dataset.question);
+    });
+  });
+
+  $("warningList").addEventListener("click", event => {
+    const adviceButton = event.target.closest("[data-warning-subject]");
+
+    if (adviceButton) {
+      const subject = adviceButton.dataset.warningSubject;
+      const present = numberValue(adviceButton.dataset.present);
+      const total = numberValue(adviceButton.dataset.total);
+      const pct = numberValue(adviceButton.dataset.percentage);
+      const needed = sessionsNeeded(present, total);
+
+      askAI(
+        `Give me personalised attendance recovery advice for ${subject}. ` +
+        `My subject records show ${present} present out of ${total} classes, ` +
+        `or ${percentageText(pct)}. The local estimate is ${needed} consecutive ` +
+        `classes to reach 75%, assuming no further absences. Verify the calculation ` +
+        `and explain it briefly.`
+      );
+
+      return;
+    }
+
+    const copyButton = event.target.closest("[data-copy-warning]");
+
+    if (copyButton) {
+      const text =
+        `${copyButton.dataset.copyWarning}: attend the next ${copyButton.dataset.needed} ` +
+        "consecutive classes to reach the 75% reference target, assuming no further absences.";
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          copyButton.textContent = "Copied!";
+        }).catch(() => {
+          addMessage(text, "assistant");
+        });
+      } else {
+        addMessage(text, "assistant");
+      }
+    }
+  });
+
+  $("refreshButton").addEventListener("click", loadAttendance);
+
+  $("logoutButton").addEventListener("click", async () => {
+    const button = $("logoutButton");
+    button.disabled = true;
+    button.textContent = "Logging out...";
+
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Accept": "application/json" }
+      });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      sessionStorage.removeItem("attendiqUser");
+      window.location.replace("/");
+    }
+  });
+
+  setUserHeader();
+  loadAttendance();
+})();
+</script>
+</body>
+</html>

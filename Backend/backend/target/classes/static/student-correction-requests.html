@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AttendIQ | Correction Requests</title>
+
+    <style>
+        :root {
+            --navy: #14213d;
+            --teal: #0f9d91;
+            --bg: #f3f6fb;
+            --text: #172033;
+            --muted: #68748a;
+            --border: #e3e9f2;
+            --white: #fff;
+            --red: #c93550;
+            --green: #12825e;
+            --amber: #a96908;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        header {
+            background: var(--navy);
+            color: white;
+            padding: 17px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .brand { font-size: 22px; font-weight: 800; }
+        .brand span { color: #4de0c5; }
+        .nav { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+
+        button, .nav-link {
+            border: 0;
+            border-radius: 9px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 750;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover, .nav-link:hover { opacity: .88; }
+        button:disabled { opacity: .55; cursor: wait; }
+        .nav-link { border: 1px solid #526079; color: white; }
+        .primary { background: var(--teal); color: white; }
+        .light { background: #e8edf5; color: var(--navy); }
+        .danger { background: #ffe7eb; color: #b4233c; }
+
+        main { width: min(1100px, 92%); margin: 28px auto 45px; }
+
+        h1 { margin: 0 0 8px; font-size: clamp(25px, 4vw, 34px); }
+        h2 { margin: 0 0 15px; font-size: 18px; }
+        .muted { color: var(--muted); font-size: 13px; line-height: 1.7; }
+
+        .panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(25, 42, 70, .035);
+            min-width: 0;
+        }
+
+        .notice {
+            margin: 18px 0;
+            padding: 13px 15px;
+            border: 1px solid #d9e8f6;
+            border-radius: 11px;
+            background: #edf7ff;
+            color: #28567a;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .field { display: grid; gap: 7px; min-width: 0; }
+        .full { grid-column: 1 / -1; }
+
+        label { color: var(--muted); font-size: 12px; font-weight: 750; }
+
+        input, select, textarea {
+            width: 100%;
+            min-width: 0;
+            padding: 11px 12px;
+            border: 1px solid #d6deea;
+            border-radius: 9px;
+            background: white;
+            color: var(--text);
+            font: inherit;
+            outline-color: var(--teal);
+        }
+
+        textarea { resize: vertical; min-height: 110px; }
+        .current-status { margin-top: 5px; font-size: 12px; color: var(--muted); }
+        .form-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+        .message {
+            display: none;
+            padding: 13px 15px;
+            border-radius: 10px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .message.error { display: block; background: #ffebee; color: #ae263d; }
+        .message.success { display: block; background: #e8f8ef; color: #126b4f; }
+        .message.info { display: block; background: #e9f5ff; color: #185c91; }
+
+        .request-list { display: grid; gap: 12px; }
+
+        .request-card {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            background: #fff;
+            min-width: 0;
+        }
+
+        .request-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .request-title { margin: 0; font-size: 14px; font-weight: 800; overflow-wrap: anywhere; }
+        .request-meta { margin-top: 5px; color: var(--muted); font-size: 12px; }
+        .request-reason { margin: 12px 0 0; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+        .pill {
+            display: inline-flex;
+            padding: 5px 9px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .pending { color: #8c5b09; background: #fff4d9; }
+        .approved { color: #12714f; background: #e3f8ed; }
+        .rejected { color: #b4233c; background: #ffebee; }
+
+        .empty {
+            padding: 25px 12px;
+            text-align: center;
+            color: var(--muted);
+            border: 1px dashed #dce4ed;
+            border-radius: 12px;
+            font-size: 13px;
+        }
+
+        footer { text-align: center; color: var(--muted); padding: 0 18px 25px; font-size: 12px; }
+
+        @media (max-width: 650px) {
+            header { padding: 14px 4%; }
+            main { width: 94%; margin-top: 20px; }
+            .panel { padding: 16px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .full { grid-column: auto; }
+            .form-actions button { flex: 1; }
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <div class="brand">Attend<span>IQ</span>
+        <small style="font-size:13px;font-weight:500;color:#d6deeb"> / Correction Requests</small>
+    </div>
+
+    <nav class="nav">
+        <a class="nav-link" href="/dashboard.html">Student Dashboard</a>
+        <a class="nav-link" href="/student-calendar.html">Attendance Calendar</a>
+        <button class="danger" id="logoutButton" type="button">Log out</button>
+    </nav>
+</header>
+
+<main>
+    <section>
+        <h1>Attendance Correction Requests</h1>
+        <div class="muted">
+            Found a mistake in your attendance? Select the saved record, explain the issue,
+            and send it to your teacher for review.
+        </div>
+    </section>
+
+    <div class="notice">
+        <strong>Important:</strong> submitting a request does not change your attendance.
+        Your teacher must review and approve it before the saved status changes.
+    </div>
+
+    <div id="message" class="message" role="status"></div>
+
+    <section class="panel">
+        <h2>Submit a new request</h2>
+
+        <form id="requestForm">
+            <div class="form-grid">
+                <div class="field">
+                    <label for="recordMonth">Attendance month</label>
+                    <input id="recordMonth" type="month" required>
+                </div>
+
+                <div class="field">
+                    <label for="attendanceRecord">Choose attendance record</label>
+                    <select id="attendanceRecord" required>
+                        <option value="">Load a month first</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="requestedStatus">Status you are requesting</label>
+                    <select id="requestedStatus" required>
+                        <option value="PRESENT">Present</option>
+                        <option value="ABSENT">Absent</option>
+                    </select>
+                    <div class="current-status" id="currentStatus">
+                        Select a record to see its current status.
+                    </div>
+                </div>
+
+                <div class="field full">
+                    <label for="reason">Reason for correction</label>
+                    <textarea id="reason" minlength="5" maxlength="500"
+                        placeholder="Explain what appears incorrect and why it should be corrected."
+                        required></textarea>
+                    <div class="muted"><span id="reasonCount">0</span>/500 characters</div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="primary" type="submit" id="submitButton">Submit Request</button>
+                <button class="light" type="button" id="reloadRecordsButton">Reload Records</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="panel">
+        <div class="request-top" style="margin-bottom:15px">
+            <div>
+                <h2 style="margin-bottom:5px">My requests</h2>
+                <div class="muted">Check the status and any comments from your teacher.</div>
+            </div>
+            <button class="light" id="refreshRequestsButton" type="button">Refresh Requests</button>
+        </div>
+
+        <div class="request-list" id="requestList">
+            <div class="empty">Loading your requests…</div>
+        </div>
+    </section>
+</main>
+
+<footer>AttendIQ · Student attendance correction workflow</footer>
+
+<script>
+(() => {
+    "use strict";
+
+    const $ = id => document.getElementById(id);
+
+    let user = null;
+    let calendarRecords = [];
+
+    try {
+        user = JSON.parse(sessionStorage.getItem("attendiqUser") || "null");
+    } catch {
+        user = null;
+    }
+
+    if (!user || !user.username ||
+        String(user.role || "").toUpperCase() !== "STUDENT") {
+        window.location.replace("/");
+        return;
+    }
+
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, ch => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[ch]));
+    }
+
+    function statusValue(value) {
+        const status = String(value || "").trim().toUpperCase();
+        if (status === "P") return "PRESENT";
+        if (status === "A") return "ABSENT";
+        return status;
+    }
+
+    function localDate(value) {
+        if (!value) return "—";
+        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value));
+        if (!match) return String(value);
+        return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+            .toLocaleDateString("en-IN", {
+                day: "2-digit", month: "short", year: "numeric"
+            });
+    }
+
+    function showMessage(text, type = "info") {
+        $("message").textContent = text;
+        $("message").className = "message " + type;
+    }
+
+    function clearMessage() {
+        $("message").textContent = "";
+        $("message").className = "message";
+    }
+
+    async function apiJSON(url, options = {}) {
+        const response = await fetch(url, {
+            credentials: "same-origin",
+            cache: "no-store",
+            ...options,
+            headers: {
+                "Accept": "application/json",
+                ...(options.headers || {})
+            }
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.status === 401) {
+            sessionStorage.removeItem("attendiqUser");
+            window.location.replace("/");
+            throw new Error("Your session has expired. Please log in again.");
+        }
+
+        if (!response.ok) {
+            throw new Error(data.message || `Request failed (HTTP ${response.status}).`);
+        }
+
+        return data;
+    }
+
+    async function loadCalendarRecords() {
+        clearMessage();
+
+        const monthValue = $("recordMonth").value;
+        const match = /^(\d{4})-(\d{2})$/.exec(monthValue);
+
+        if (!match) {
+            showMessage("Choose a month first.", "error");
+            return;
+        }
+
+        const select = $("attendanceRecord");
+        select.innerHTML = '<option value="">Loading records…</option>';
+
+        try {
+            const query = new URLSearchParams({
+                year: match[1],
+                month: match[2]
+            });
+
+            const data = await apiJSON(
+                "/api/attendance/calendar?" + query.toString()
+            );
+
+            calendarRecords = Array.isArray(data.records) ? data.records : [];
+
+            const eligible = calendarRecords.filter(record => {
+                const status = statusValue(record.status);
+                return status === "PRESENT" || status === "ABSENT";
+            });
+
+            if (!eligible.length) {
+                select.innerHTML = '<option value="">No eligible records in this month</option>';
+                $("currentStatus").textContent =
+                    "Choose another month that contains Present or Absent records.";
+                return;
+            }
+
+            select.innerHTML =
+                '<option value="">Select the record you want to correct</option>' +
+                eligible.map(record => {
+                    const label = `${localDate(record.date)} | ${record.subject || "Unspecified"} | ${record.classSession || "—"} | ${statusValue(record.status)}`;
+                    return `<option value="${escapeHTML(record.id)}">${escapeHTML(label)}</option>`;
+                }).join("");
+
+            showMessage(`${eligible.length} attendance record(s) loaded for this month.`, "success");
+            updateSelectedRecord();
+        } catch (error) {
+            select.innerHTML = '<option value="">Could not load records</option>';
+            showMessage(error.message || "Unable to load attendance records.", "error");
+        }
+    }
+
+    function updateSelectedRecord() {
+        const id = $("attendanceRecord").value;
+        const record = calendarRecords.find(item => String(item.id) === String(id));
+
+        if (!record) {
+            $("currentStatus").textContent = "Select a record to see its current status.";
+            return;
+        }
+
+        const current = statusValue(record.status);
+        $("currentStatus").textContent = `Current saved status: ${current}`;
+
+        const requested = $("requestedStatus");
+        for (const option of requested.options) {
+            option.disabled = option.value === current;
+        }
+
+        const otherStatus = current === "PRESENT" ? "ABSENT" : "PRESENT";
+        requested.value = otherStatus;
+    }
+
+    function requestStatusClass(status) {
+        const value = String(status || "").toLowerCase();
+        if (value === "approved") return "approved";
+        if (value === "rejected") return "rejected";
+        return "pending";
+    }
+
+    async function loadMyRequests() {
+        try {
+            const data = await apiJSON("/api/attendance/correction-requests/mine");
+            const requests = Array.isArray(data.requests) ? data.requests : [];
+
+            if (!requests.length) {
+                $("requestList").innerHTML =
+                    '<div class="empty">You have not submitted any correction requests yet.</div>';
+                return;
+            }
+
+            $("requestList").innerHTML = requests.map(request => `
+                <article class="request-card">
+                    <div class="request-top">
+                        <div>
+                            <p class="request-title">
+                                Record #${escapeHTML(request.attendanceRecordId)}
+                                · ${escapeHTML(request.currentStatus)}
+                                → ${escapeHTML(request.requestedStatus)}
+                            </p>
+                            <div class="request-meta">
+                                Submitted: ${escapeHTML(request.createdAt || "—")}
+                            </div>
+                        </div>
+                        <span class="pill ${requestStatusClass(request.requestStatus)}">
+                            ${escapeHTML(request.requestStatus || "PENDING")}
+                        </span>
+                    </div>
+
+                    <p class="request-reason"><strong>Your reason:</strong> ${escapeHTML(request.reason)}</p>
+
+                    ${request.teacherUsername ? `
+                        <p class="request-meta">
+                            Reviewed by: ${escapeHTML(request.teacherUsername)}
+                            ${request.reviewedAt ? " · " + escapeHTML(request.reviewedAt) : ""}
+                        </p>
+                    ` : ""}
+
+                    ${request.teacherComment ? `
+                        <p class="request-reason"><strong>Teacher comment:</strong> ${escapeHTML(request.teacherComment)}</p>
+                    ` : ""}
+                </article>
+            `).join("");
+        } catch (error) {
+            $("requestList").innerHTML =
+                `<div class="empty">${escapeHTML(error.message || "Unable to load your requests.")}</div>`;
+        }
+    }
+
+    $("requestForm").addEventListener("submit", async event => {
+        event.preventDefault();
+        clearMessage();
+
+        const recordId = $("attendanceRecord").value;
+        const record = calendarRecords.find(
+            item => String(item.id) === String(recordId)
+        );
+
+        if (!record) {
+            showMessage("Choose an attendance record first.", "error");
+            return;
+        }
+
+        const current = statusValue(record.status);
+        const requestedStatus = $("requestedStatus").value;
+        const reason = $("reason").value.trim();
+
+        if (requestedStatus === current) {
+            showMessage("Choose a status different from the current status.", "error");
+            return;
+        }
+
+        if (reason.length < 5 || reason.length > 500) {
+            showMessage("Your reason must be between 5 and 500 characters.", "error");
+            return;
+        }
+
+        const button = $("submitButton");
+        button.disabled = true;
+        button.textContent = "Submitting…";
+
+        try {
+            const result = await apiJSON("/api/attendance/correction-requests", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    attendanceRecordId: Number(recordId),
+                    requestedStatus,
+                    reason
+                })
+            });
+
+            showMessage(
+                result.message || "Your request was submitted successfully.",
+                "success"
+            );
+
+            $("reason").value = "";
+            $("reasonCount").textContent = "0";
+
+            await Promise.all([loadMyRequests(), loadCalendarRecords()]);
+        } catch (error) {
+            showMessage(error.message || "Unable to submit your request.", "error");
+        } finally {
+            button.disabled = false;
+            button.textContent = "Submit Request";
+        }
+    });
+
+    $("attendanceRecord").addEventListener("change", updateSelectedRecord);
+
+    $("recordMonth").addEventListener("change", loadCalendarRecords);
+
+    $("reloadRecordsButton").addEventListener("click", loadCalendarRecords);
+
+    $("refreshRequestsButton").addEventListener("click", loadMyRequests);
+
+    $("reason").addEventListener("input", () => {
+        $("reasonCount").textContent = String($("reason").value.length);
+    });
+
+    $("logoutButton").addEventListener("click", async () => {
+        try {
+            await fetch("/api/auth/logout", {
+                method: "POST",
+                credentials: "same-origin"
+            });
+        } finally {
+            sessionStorage.removeItem("attendiqUser");
+            window.location.replace("/");
+        }
+    });
+
+    const now = new Date();
+    $("recordMonth").value =
+        `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+    loadCalendarRecords();
+    loadMyRequests();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AttendIQ | Student History</title>
+
+    <style>
+        :root {
+            --navy: #14213d;
+            --teal: #0f9d91;
+            --bg: #f3f6fb;
+            --text: #172033;
+            --muted: #68748a;
+            --border: #e3e9f2;
+            --red: #c93550;
+            --white: #ffffff;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        header {
+            background: var(--navy);
+            color: white;
+            padding: 18px 5%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .brand { font-size: 22px; font-weight: 800; }
+        .brand span { color: #4de0c5; }
+        .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        button, a.nav-link {
+            border: 0;
+            border-radius: 9px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover, a.nav-link:hover { opacity: .87; }
+        a.nav-link { color: white; background: transparent; border: 1px solid #526079; }
+        .primary { background: var(--teal); color: white; }
+        .light { background: #e8edf5; color: var(--navy); }
+        .danger { background: #ffe7eb; color: #b4233c; }
+        .edit-btn { background: #e1f7f4; color: #087e73; }
+        .delete-btn { background: #ffebee; color: #b4233c; }
+        .small-btn { padding: 7px 9px; font-size: 12px; }
+
+        .container { width: min(1250px, 92%); margin: 28px auto 45px; }
+
+        .heading {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+
+        h1 { margin: 0 0 8px; font-size: clamp(25px, 4vw, 34px); }
+        h2 { margin: 0 0 16px; font-size: 18px; }
+        .muted { color: var(--muted); font-size: 14px; }
+        .student-meta { margin-top: 8px; line-height: 1.8; }
+
+        .panel {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(25, 42, 70, .035);
+            min-width: 0;
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+
+        .field { display: grid; gap: 6px; }
+        label { font-size: 12px; color: var(--muted); font-weight: 700; }
+
+        input, select {
+            border: 1px solid #d6deea;
+            border-radius: 9px;
+            padding: 10px 11px;
+            font: inherit;
+            color: var(--text);
+            background: white;
+            outline-color: var(--teal);
+            min-width: 165px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 19px;
+        }
+
+        .stat-label { color: var(--muted); font-size: 13px; }
+        .stat-value { font-size: 29px; font-weight: 800; margin: 9px 0 4px; }
+        .stat-note { color: var(--muted); font-size: 12px; }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+            gap: 20px;
+        }
+
+        .table-wrap { overflow-x: auto; width: 100%; }
+        table { border-collapse: collapse; width: 100%; min-width: 690px; }
+
+        th, td {
+            padding: 13px 12px;
+            text-align: left;
+            border-bottom: 1px solid #edf0f5;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            background: #f8fafd;
+        }
+
+        tbody tr:hover { background: #fafcff; }
+        .actions { display: flex; gap: 7px; }
+
+        .status {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 40px;
+            font-weight: 800;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .present { background: #e1f6ee; color: #087450; }
+        .absent { background: #ffebee; color: #b4233c; }
+        .other { background: #edf1f6; color: #566174; }
+
+        .progress-bg {
+            height: 8px;
+            background: #eaf0f6;
+            border-radius: 50px;
+            overflow: hidden;
+            margin-top: 7px;
+        }
+
+        .progress { height: 100%; background: var(--teal); border-radius: 50px; }
+        .progress.low { background: var(--red); }
+
+        .message {
+            display: none;
+            padding: 13px 15px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+
+        .message.error { display: block; background: #ffebee; color: #ae263d; }
+        .message.info { display: block; background: #e9f5ff; color: #185c91; }
+        .empty { padding: 18px 0; color: var(--muted); font-size: 14px; }
+
+        dialog {
+            width: min(520px, calc(100% - 28px));
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 25px;
+            color: var(--text);
+            box-shadow: 0 20px 70px rgba(15, 30, 55, .25);
+        }
+
+        dialog::backdrop { background: rgba(12, 23, 42, .55); }
+        dialog h2 { margin-bottom: 7px; }
+        .dialog-form { display: grid; gap: 15px; margin-top: 20px; }
+        .dialog-form .field { width: 100%; }
+        .dialog-form input, .dialog-form select { width: 100%; min-width: 0; }
+        .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 5px; }
+        .dialog-error { color: #b4233c; font-size: 13px; }
+
+        footer {
+            text-align: center;
+            color: var(--muted);
+            padding: 0 20px 25px;
+            font-size: 12px;
+        }
+
+        @media (max-width: 850px) {
+            .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .two-columns { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 500px) {
+            header { padding: 15px 4%; }
+            .container { width: 94%; margin-top: 20px; }
+            .panel { padding: 16px; }
+            .stats { gap: 9px; }
+            .stat { padding: 14px; }
+            .stat-value { font-size: 24px; }
+            .field { width: 100%; }
+            .field input, .field select { width: 100%; min-width: 0; }
+            .filters button { flex: 1; }
+            .actions { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <div class="brand">Attend<span>IQ</span>
+        <small style="font-size:13px;font-weight:500;color:#d6deeb"> / Student History</small>
+    </div>
+
+    <nav class="header-actions">
+        <a class="nav-link" href="/teacher-analytics.html">← Teacher Analytics</a>
+        <button class="danger" id="logoutButton" type="button">Log out</button>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="heading">
+        <div>
+            <h1 id="studentName">Student Attendance History</h1>
+            <div class="muted">Review and correct attendance saved in the database.</div>
+            <div class="muted student-meta" id="studentMeta">Loading student details…</div>
+        </div>
+
+        <button class="primary" id="exportButton" type="button">Export History CSV</button>
+    </section>
+
+    <div id="message" class="message" role="status"></div>
+
+    <section class="panel">
+        <h2>Filter records</h2>
+
+        <div class="filters">
+            <div class="field">
+                <label for="fromDate">From date</label>
+                <input type="date" id="fromDate">
+            </div>
+
+            <div class="field">
+                <label for="toDate">To date</label>
+                <input type="date" id="toDate">
+            </div>
+
+            <div class="field">
+                <label for="subjectFilter">Subject</label>
+                <select id="subjectFilter">
+                    <option value="">All subjects</option>
+                </select>
+            </div>
+
+            <button class="primary" id="applyButton" type="button">Apply filters</button>
+            <button class="light" id="clearButton" type="button">Clear filters</button>
+            <button class="light" id="refreshButton" type="button">Refresh</button>
+        </div>
+    </section>
+
+    <section class="stats">
+        <article class="stat">
+            <div class="stat-label">Attendance percentage</div>
+            <div class="stat-value" id="attendancePercentage">—</div>
+            <div class="stat-note">For the selected records</div>
+        </article>
+
+        <article class="stat">
+            <div class="stat-label">Total classes</div>
+            <div class="stat-value" id="totalClasses">—</div>
+            <div class="stat-note">Matching attendance entries</div>
+        </article>
+
+        <article class="stat">
+            <div class="stat-label">Present</div>
+            <div class="stat-value" id="presentClasses">—</div>
+            <div class="stat-note">Classes marked present</div>
+        </article>
+
+        <article class="stat">
+            <div class="stat-label">Absent</div>
+            <div class="stat-value" id="absentClasses">—</div>
+            <div class="stat-note">Classes marked absent</div>
+        </article>
+    </section>
+
+    <section class="two-columns">
+        <article class="panel">
+            <h2>Subject-wise attendance</h2>
+            <div id="subjectSummary"></div>
+            <div id="subjectEmpty" class="empty" style="display:none">
+                No subject records match these filters.
+            </div>
+        </article>
+
+        <article class="panel">
+            <h2>Attendance records</h2>
+            <div class="muted" style="margin-bottom:14px">
+                Newest records first. Use Edit to correct a record or Delete to remove it.
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Subject</th>
+                        <th>Session</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="recordsTable"></tbody>
+                </table>
+            </div>
+
+            <div id="recordsEmpty" class="empty" style="display:none">
+                No attendance records match these filters.
+            </div>
+        </article>
+    </section>
+</main>
+
+<dialog id="editDialog">
+    <h2>Edit attendance record</h2>
+    <div class="muted">Changes will be saved to the AttendIQ database.</div>
+
+    <form id="editForm" class="dialog-form">
+        <input type="hidden" id="editRecordId">
+
+        <div class="field">
+            <label for="editDate">Attendance date</label>
+            <input id="editDate" type="date" required>
+        </div>
+
+        <div class="field">
+            <label for="editSubject">Subject</label>
+            <input id="editSubject" type="text" maxlength="100" required>
+        </div>
+
+        <div class="field">
+            <label for="editSession">Class session</label>
+            <select id="editSession" required>
+                <option value="Morning">Morning</option>
+                <option value="Afternoon">Afternoon</option>
+                <option value="Evening">Evening</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label for="editStatus">Attendance status</label>
+            <select id="editStatus" required>
+                <option value="PRESENT">Present</option>
+                <option value="ABSENT">Absent</option>
+            </select>
+        </div>
+
+        <div id="editError" class="dialog-error" role="alert"></div>
+
+        <div class="dialog-actions">
+            <button class="light" id="cancelEditButton" type="button">Cancel</button>
+            <button class="primary" id="saveEditButton" type="submit">Save changes</button>
+        </div>
+    </form>
+</dialog>
+
+<footer>AttendIQ · Individual attendance history and record corrections</footer>
+
+<script>
+    const storedUser = (() => {
+        try {
+            return JSON.parse(sessionStorage.getItem("attendiqUser") || "null");
+        } catch {
+            return null;
+        }
+    })();
+
+    if (!storedUser || String(storedUser.role || "").toUpperCase() !== "TEACHER") {
+        window.location.replace("/");
+    }
+
+    const username = new URLSearchParams(window.location.search).get("username");
+
+    let historyData = null;
+
+    const messageBox = document.getElementById("message");
+    const editDialog = document.getElementById("editDialog");
+    const editForm = document.getElementById("editForm");
+
+    function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[char]);
+    }

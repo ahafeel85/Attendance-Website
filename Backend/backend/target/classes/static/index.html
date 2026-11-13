@@ -1,0 +1,997 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#081426">
+  <meta name="description" content="AttendIQ — smarter campus attendance management.">
+  <title>AttendIQ | Smart Attendance</title>
+
+  <style>
+    :root {
+      --navy: #081426;
+      --teal: #19d3bb;
+      --teal-dark: #078d81;
+      --ink: #18263c;
+      --muted: #8390a4;
+      --ease: cubic-bezier(.2, .75, .25, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 24px;
+      display: grid;
+      place-items: center;
+      overflow-x: hidden;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 10% 10%, #d6f5ed, transparent 35%),
+        radial-gradient(ellipse at 100% 100%, #e0e8ff, transparent 35%),
+        #f5f7fb;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    button:focus-visible, input:focus-visible {
+      outline: 3px solid #19bba766;
+      outline-offset: 3px;
+    }
+
+    .ambient {
+      position: fixed;
+      z-index: -1;
+      width: 230px;
+      height: 230px;
+      border-radius: 50%;
+      pointer-events: none;
+      background: #8debd52b;
+      filter: blur(2px);
+      animation: ambientFloat 12s ease-in-out infinite alternate;
+    }
+
+    .ambient-one {
+      top: -100px;
+      right: 8%;
+    }
+
+    .ambient-two {
+      bottom: -70px;
+      left: 5%;
+      width: 180px;
+      height: 180px;
+      background: #9dbeff35;
+      animation-delay: -5s;
+    }
+
+    .app {
+      width: min(100%, 1060px);
+      min-height: 620px;
+      display: grid;
+      grid-template-columns: 1.04fr .96fr;
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      border: 1px solid white;
+      border-radius: 26px;
+      background: white;
+      box-shadow:
+        0 35px 100px #172c4d18,
+        0 6px 20px #172c4d08;
+      animation: appear .8s var(--ease) both;
+    }
+
+    /* Brand panel */
+
+    .brand-panel {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 42px;
+      color: white;
+      background:
+        radial-gradient(ellipse at 85% 15%, #125b6870, transparent 42%),
+        linear-gradient(145deg, #091426 0%, #102a42 58%, #0d494d 100%);
+    }
+
+    .brand-panel::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: 0;
+      opacity: .19;
+      pointer-events: none;
+      background-image:
+        linear-gradient(#b9f5eb20 1px, transparent 1px),
+        linear-gradient(90deg, #b9f5eb20 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom right, black, transparent 85%);
+    }
+
+    .orbit {
+      position: absolute;
+      z-index: -1;
+      border: 1px solid #a7f5e51b;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .orbit-one {
+      width: 530px;
+      height: 530px;
+      right: -320px;
+      top: 60px;
+      animation: orbitFloat 14s ease-in-out infinite alternate;
+    }
+
+    .orbit-two {
+      width: 410px;
+      height: 410px;
+      right: -235px;
+      top: 120px;
+      animation: orbitFloat 11s ease-in-out infinite alternate-reverse;
+    }
+
+    .orbit-three {
+      width: 290px;
+      height: 290px;
+      right: -175px;
+      top: 180px;
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      animation: slideDown .7s .1s var(--ease) both;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: white;
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 43px;
+      height: 43px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      border-radius: 14px;
+      color: #062b32;
+      background: linear-gradient(145deg, #a2ffe7, #2dd9bf);
+      box-shadow: 0 6px 24px #19d3bb27;
+      font-size: 25px;
+      font-weight: 950;
+      letter-spacing: -2px;
+      transform: rotate(-3deg);
+      transition: transform .35s var(--ease);
+    }
+
+    .brand:hover .brand-icon {
+      transform: rotate(5deg) scale(1.06);
+    }
+
+    .brand-name {
+      font-size: 23px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .brand-name span {
+      color: var(--teal);
+    }
+
+    .edition {
+      padding: 7px 10px;
+      border: 1px solid #ffffff1e;
+      border-radius: 99px;
+      color: #b8cad8;
+      background: #ffffff08;
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: 1.3px;
+    }
+
+    .hero {
+      position: relative;
+      max-width: 470px;
+      margin: 55px 0;
+      animation: slideUp .85s .18s var(--ease) both;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 12px;
+      border: 1px solid #ffffff1c;
+      border-radius: 999px;
+      color: #cdfaf0;
+      background: #ffffff08;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 0 14px #19d3bbab;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .hero h1 {
+      margin: 26px 0 20px;
+      font-size: clamp(38px, 4.2vw, 54px);
+      line-height: 1.08;
+      letter-spacing: -2.6px;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(90deg, #5bf0d6, #a2ffe8, #42d9cb);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradient 6s ease infinite;
+    }
+
+    .hero-description {
+      max-width: 390px;
+      color: #b5c6d8;
+      font-size: 14px;
+      line-height: 1.95;
+    }
+
+    .features {
+      display: grid;
+      gap: 17px;
+      margin-top: 32px;
+    }
+
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      color: #e7f1f8;
+      font-size: 13px;
+    }
+
+    .feature-icon {
+      width: 33px;
+      height: 33px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      border: 1px solid #ffffff20;
+      border-radius: 11px;
+      color: #72f4dc;
+      background: #ffffff09;
+      transition: transform .25s, background .25s;
+    }
+
+    .feature:hover .feature-icon {
+      transform: translateY(-3px);
+      background: #ffffff17;
+    }
+
+    .brand-footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      color: #8ea8bb;
+      font-size: 10px;
+      letter-spacing: .5px;
+    }
+
+    /* Login panel */
+
+    .form-panel {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 45px;
+      background:
+        radial-gradient(ellipse at 100% 0%, #effcf85c, transparent 48%),
+        white;
+    }
+
+    .form-content {
+      width: 100%;
+      max-width: 365px;
+      animation: slideUp .8s .28s var(--ease) both;
+    }
+
+    .mobile-brand {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+      color: var(--navy);
+      font-size: 21px;
+      font-weight: 850;
+    }
+
+    .mobile-brand .brand-icon {
+      width: 37px;
+      height: 37px;
+      font-size: 22px;
+    }
+
+    .welcome {
+      margin: 0 0 12px;
+      color: var(--teal-dark);
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: 2px;
+    }
+
+    .form-content h2 {
+      margin: 0;
+      color: var(--navy);
+      font-size: clamp(29px, 3vw, 36px);
+      letter-spacing: -1.5px;
+    }
+
+    .description {
+      margin: 13px 0 32px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.85;
+    }
+
+    .field {
+      margin-bottom: 21px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 9px;
+      color: #29374d;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      transform: translateY(-50%);
+      color: #8c9aaf;
+      pointer-events: none;
+      transition: color .2s;
+    }
+
+    .input-wrap:focus-within .input-icon {
+      color: var(--teal-dark);
+    }
+
+    .input-wrap input {
+      display: block;
+      width: 100%;
+      height: 52px;
+      padding: 0 43px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      outline: none;
+      color: var(--ink);
+      background: #fbfcfe;
+      font-size: 13px;
+      transition: border-color .25s, box-shadow .25s, background .25s;
+    }
+
+    .input-wrap input::placeholder {
+      color: #a1adbe;
+    }
+
+    .input-wrap input:hover {
+      border-color: #cbd7e5;
+    }
+
+    .input-wrap input:focus {
+      border-color: var(--teal-dark);
+      background: white;
+      box-shadow: 0 0 0 4px #12bba414;
+    }
+
+    #password {
+      padding-right: 74px;
+    }
+
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      right: 12px;
+      transform: translateY(-50%);
+      padding: 6px;
+      border: 0;
+      border-radius: 6px;
+      color: var(--teal-dark);
+      background: transparent;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .toggle-password:hover {
+      background: #12bba410;
+    }
+
+    .form-options {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 2px 0 24px;
+      color: #7b879a;
+      font-size: 11px;
+    }
+
+    .remember {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .remember input {
+      width: 15px;
+      height: 15px;
+      margin: 0;
+      accent-color: var(--teal-dark);
+    }
+
+    .access-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+
+    /* Login button */
+
+    .submit-button {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 11px;
+      width: 100%;
+      min-height: 53px;
+      overflow: hidden;
+      border: 0;
+      border-radius: 12px;
+      color: #f7fffd;
+      background: linear-gradient(110deg, #087d73, #09a694);
+      box-shadow: 0 9px 22px #078d8128;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .25s var(--ease), box-shadow .25s;
+    }
+
+    .submit-button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-120%) skewX(-20deg);
+      background: linear-gradient(90deg, transparent, #ffffff30, transparent);
+      transition: transform .7s var(--ease);
+    }
+
+    .submit-button:hover::before {
+      transform: translateX(120%) skewX(-20deg);
+    }
+
+    .submit-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 13px 27px #078d813b;
+    }
+
+    .submit-button:active {
+      transform: translateY(0) scale(.99);
+    }
+
+    .submit-button:disabled {
+      cursor: wait;
+      opacity: .74;
+      transform: none;
+    }
+
+    .button-label, .button-arrow, .loader {
+      position: relative;
+      z-index: 1;
+    }
+
+    .button-arrow {
+      font-size: 19px;
+      font-weight: 450;
+      transition: transform .25s;
+    }
+
+    .submit-button:hover .button-arrow {
+      transform: translateX(4px);
+    }
+
+    .loader {
+      display: none;
+      width: 15px;
+      height: 15px;
+      border: 2px solid #ffffff65;
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .65s linear infinite;
+    }
+
+    .submit-button.loading .loader {
+      display: inline-block;
+    }
+
+    .submit-button.loading .button-arrow {
+      display: none;
+    }
+
+    .status {
+      display: none;
+      margin-top: 16px;
+      padding: 13px 14px;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      font-size: 12px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+      animation: slideUp .3s ease both;
+    }
+
+    .status.error {
+      display: block;
+      color: #a6293b;
+      background: #fff3f5;
+      border-color: #ffd8df;
+    }
+
+    .status.success {
+      display: block;
+      color: #136849;
+      background: #edfbf4;
+      border-color: #c7f0df;
+    }
+
+    .security-note {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 7px;
+      margin-top: 27px;
+      color: #96a1b1;
+      font-size: 10px;
+      text-align: center;
+    }
+
+    .bottom-note {
+      margin-top: 30px;
+      padding-top: 17px;
+      border-top: 1px solid #f0f2f6;
+      color: #a0aabc;
+      font-size: 10px;
+      line-height: 1.8;
+      text-align: center;
+    }
+
+    /* Animations */
+
+    @keyframes appear {
+      from { opacity: 0; transform: translateY(18px) scale(.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(17px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes ambientFloat {
+      from { transform: translate(0, 0) scale(1); }
+      to { transform: translate(-18px, 18px) scale(1.08); }
+    }
+
+    @keyframes orbitFloat {
+      from { transform: translateY(-8px) rotate(-4deg); }
+      to { transform: translateY(14px) rotate(5deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 14px #19d3bb99; }
+      50% { opacity: .55; box-shadow: 0 0 5px #19d3bb55; }
+    }
+
+    @keyframes gradient {
+      0%, 100% { background-position: 0% center; }
+      50% { background-position: 100% center; }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 920px) {
+      body { padding: 16px; }
+      .brand-panel { padding: 30px; }
+      .form-panel { padding: 30px; }
+      .hero h1 { font-size: clamp(35px, 4.3vw, 46px); }
+      .edition { display: none; }
+    }
+
+    @media (max-width: 680px) {
+      body { min-height: 100svh; padding: 12px; }
+      .app {
+        display: block;
+        width: min(100%, 460px);
+        min-height: auto;
+        border-radius: 23px;
+      }
+      .brand-panel { display: none; }
+      .form-panel { padding: 32px 25px 26px; }
+      .form-content { max-width: 390px; }
+      .mobile-brand { display: flex; }
+      .form-content h2 { font-size: 32px; }
+    }
+
+    @media (max-width: 360px) {
+      body { padding: 8px; }
+      .form-panel { padding: 24px 19px; }
+      .form-options { align-items: flex-start; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <main class="app">
+
+    <section class="brand-panel" aria-label="About AttendIQ">
+      <div class="orbit orbit-one" aria-hidden="true"></div>
+      <div class="orbit orbit-two" aria-hidden="true"></div>
+      <div class="orbit orbit-three" aria-hidden="true"></div>
+
+      <header class="brand-header">
+        <a class="brand" href="/" aria-label="AttendIQ home">
+          <span class="brand-icon">A</span>
+          <span class="brand-name">Attend<span>IQ</span></span>
+        </a>
+        <span class="edition">CAMPUS EDITION</span>
+      </header>
+
+      <div class="hero">
+        <div class="pill">
+          <span class="dot"></span>
+          YOUR CAMPUS, CONNECTED
+        </div>
+
+        <h1>
+          Attendance,<br>
+          without the<br>
+          <em>complexity.</em>
+        </h1>
+
+        <p class="hero-description">
+          Spend less time managing records and more time focusing
+          on learning. One workspace for a more organised campus.
+        </p>
+
+        <div class="features">
+          <div class="feature">
+            <span class="feature-icon">✓</span>
+            Simple, organised attendance management
+          </div>
+          <div class="feature">
+            <span class="feature-icon">↗</span>
+            A cleaner experience for students and staff
+          </div>
+          <div class="feature">
+            <span class="feature-icon">◎</span>
+            One connected campus workspace
+          </div>
+        </div>
+      </div>
+
+      <footer class="brand-footer">
+        <span>ATTENDIQ · ATTENDANCE MANAGEMENT</span>
+        <span>VERSION 1.0</span>
+      </footer>
+    </section>
+
+    <section class="form-panel" aria-labelledby="loginTitle">
+      <div class="form-content">
+
+        <div class="mobile-brand">
+          <span class="brand-icon">A</span>
+          <span>Attend<span style="color:#078d81">IQ</span></span>
+        </div>
+
+        <p class="welcome">WELCOME BACK</p>
+        <h2 id="loginTitle">Sign in to your account</h2>
+
+        <p class="description">
+          Your campus workspace is just one sign-in away.
+          Enter your account details below.
+        </p>
+
+        <form id="loginForm">
+          <div class="field">
+            <label for="username">Username</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor"
+                   stroke-width="1.7" aria-hidden="true">
+                <circle cx="12" cy="8" r="4"></circle>
+                <path d="M4.5 21a7.5 7.5 0 0 1 15 0"></path>
+              </svg>
+
+              <input
+                id="username"
+                name="username"
+                type="text"
+                placeholder="Enter your username"
+                autocomplete="username"
+                autocapitalize="none"
+                spellcheck="false"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor"
+                   stroke-width="1.7" aria-hidden="true">
+                <rect x="4" y="10" width="16" height="11" rx="2.5"></rect>
+                <path d="M8 10V7a4 4 0 1 1 8 0v3"></path>
+              </svg>
+
+              <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required
+              >
+
+              <button
+                class="toggle-password"
+                id="togglePassword"
+                type="button"
+                aria-label="Show password"
+                aria-pressed="false"
+              >Show</button>
+            </div>
+          </div>
+
+          <div class="form-options">
+            <label class="remember" for="rememberUsername">
+              <input id="rememberUsername" type="checkbox">
+              <span>Remember username</span>
+            </label>
+
+            <span class="access-label">◆ Account sign-in</span>
+          </div>
+
+          <button class="submit-button" id="loginButton" type="submit">
+            <span class="button-label" id="buttonText">Sign in to AttendIQ</span>
+            <span class="loader" aria-hidden="true"></span>
+            <span class="button-arrow" id="buttonArrow">→</span>
+          </button>
+
+          <div id="status" class="status" role="status" aria-live="polite"></div>
+        </form>
+
+        <div class="security-note">
+          ◆ &nbsp; Never share your password with anyone.
+        </div>
+
+        <footer class="bottom-note">
+          Built for a better campus experience.<br>
+          <strong>AttendIQ</strong> · Attendance Management
+        </footer>
+
+      </div>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const form = document.getElementById("loginForm");
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+    const rememberCheckbox = document.getElementById("rememberUsername");
+    const togglePassword = document.getElementById("togglePassword");
+    const loginButton = document.getElementById("loginButton");
+    const buttonText = document.getElementById("buttonText");
+    const buttonArrow = document.getElementById("buttonArrow");
+    const statusBox = document.getElementById("status");
+
+    // Restore only the remembered username, never the password.
+    try {
+      const savedUsername = localStorage.getItem("attendiqUsername");
+
+      if (savedUsername) {
+        usernameInput.value = savedUsername;
+        rememberCheckbox.checked = true;
+      }
+    } catch (error) {
+      // Browser storage is optional.
+    }
+
+    // Show or hide the password.
+    togglePassword.addEventListener("click", () => {
+      const passwordIsHidden = passwordInput.type === "password";
+
+      passwordInput.type = passwordIsHidden ? "text" : "password";
+      togglePassword.textContent = passwordIsHidden ? "Hide" : "Show";
+      togglePassword.setAttribute(
+        "aria-label",
+        passwordIsHidden ? "Hide password" : "Show password"
+      );
+      togglePassword.setAttribute("aria-pressed", String(passwordIsHidden));
+    });
+
+    function showStatus(message, type) {
+      statusBox.textContent = message;
+      statusBox.className = "status " + type;
+    }
+
+    function setLoading(isLoading) {
+      loginButton.disabled = isLoading;
+      loginButton.classList.toggle("loading", isLoading);
+      buttonText.textContent = isLoading
+        ? "Signing you in..."
+        : "Sign in to AttendIQ";
+
+      buttonArrow.textContent = isLoading ? "" : "→";
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+
+      statusBox.className = "status";
+
+      if (!username || !password) {
+        showStatus("Please enter your username and password.", "error");
+        return;
+      }
+
+      try {
+        if (rememberCheckbox.checked) {
+          localStorage.setItem("attendiqUsername", username);
+        } else {
+          localStorage.removeItem("attendiqUsername");
+        }
+      } catch (error) {
+        // Login can continue if browser storage is unavailable.
+      }
+
+      setLoading(true);
+
+      let redirecting = false;
+
+      try {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({ username, password })
+        });
+
+        let data = {};
+
+        try {
+          data = await response.json();
+        } catch (error) {
+          // Handle a non-JSON response below.
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || "Login failed. Check your username and password."
+          );
+        }
+
+        // Normalise the role returned by the Java backend.
+        const role = String(data.role || "STUDENT").toUpperCase();
+
+        if (role !== "STUDENT" && role !== "TEACHER") {
+          throw new Error("This account does not have a valid application role.");
+        }
+
+        // Save display information for the current browser session.
+        sessionStorage.setItem("attendiqUser", JSON.stringify({
+          name: data.name || username,
+          username: data.username || username,
+          role: role
+        }));
+
+        // Redirect each role to its own page.
+        redirecting = true;
+
+        if (role === "TEACHER") {
+          window.location.href = "/teacher.html";
+        } else {
+          window.location.href = "/dashboard.html";
+        }
+
+      } catch (error) {
+        showStatus(
+          error instanceof TypeError
+            ? "Unable to connect. Make sure AttendIQ's backend is running."
+            : error.message || "Something went wrong. Please try again.",
+          "error"
+        );
+      } finally {
+        // Don't reset the form while navigating to the next page.
+        if (!redirecting) {
+          setLoading(false);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

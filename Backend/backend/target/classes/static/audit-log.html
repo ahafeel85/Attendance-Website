@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AttendIQ | Attendance Audit Log</title>
+
+    <style>
+        :root {
+            --navy: #14213d;
+            --teal: #0f9d91;
+            --bg: #f3f6fb;
+            --text: #172033;
+            --muted: #68748a;
+            --border: #e3e9f2;
+            --red: #c93550;
+            --white: #fff;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        header {
+            background: var(--navy);
+            color: white;
+            padding: 18px 5%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .brand { font-size: 22px; font-weight: 800; }
+        .brand span { color: #4de0c5; }
+        .nav { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        button, .nav-link {
+            border: 0;
+            border-radius: 9px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover, .nav-link:hover { opacity: .88; }
+        .nav-link { color: white; border: 1px solid #526079; }
+        .primary { background: var(--teal); color: white; }
+        .light { background: #e8edf5; color: var(--navy); }
+        .danger { background: #ffe7eb; color: #b4233c; }
+
+        main { width: min(1350px, 92%); margin: 28px auto 45px; }
+        .heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+
+        h1 { margin: 0 0 8px; font-size: clamp(25px, 4vw, 34px); }
+        h2 { margin: 0 0 16px; font-size: 18px; }
+        .muted { color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+        .notice {
+            border: 1px solid #d9e8f6;
+            background: #edf7ff;
+            color: #28567a;
+            border-radius: 12px;
+            padding: 13px 15px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .panel {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(25, 42, 70, .035);
+            min-width: 0;
+        }
+
+        .filters {
+            display: flex;
+            align-items: end;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .field { display: grid; gap: 6px; }
+        label { font-size: 12px; font-weight: 700; color: var(--muted); }
+
+        input, select {
+            border: 1px solid #d6deea;
+            border-radius: 9px;
+            padding: 10px 11px;
+            font: inherit;
+            color: var(--text);
+            background: white;
+            outline-color: var(--teal);
+            min-width: 160px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 19px;
+        }
+
+        .stat-label { color: var(--muted); font-size: 13px; }
+        .stat-value { font-size: 28px; font-weight: 800; margin: 9px 0 4px; }
+
+        .table-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .table-wrap { width: 100%; overflow-x: auto; }
+        table { width: 100%; min-width: 1050px; border-collapse: collapse; }
+
+        th, td {
+            padding: 13px 12px;
+            text-align: left;
+            vertical-align: top;
+            border-bottom: 1px solid #edf0f5;
+            font-size: 13px;
+        }
+
+        th {
+            background: #f8fafd;
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        tbody tr:hover { background: #fafcff; }
+
+        .pill {
+            display: inline-block;
+            border-radius: 50px;
+            padding: 5px 9px;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .updated { background: #e4f2ff; color: #1d5e92; }
+        .deleted { background: #ffebee; color: #b4233c; }
+
+        .snapshot {
+            min-width: 170px;
+            line-height: 1.8;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .message {
+            display: none;
+            padding: 13px 15px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+
+        .message.error { display: block; background: #ffebee; color: #ae263d; }
+        .message.info { display: block; background: #e9f5ff; color: #185c91; }
+        .empty { padding: 24px 0; color: var(--muted); font-size: 14px; }
+
+        footer {
+            text-align: center;
+            color: var(--muted);
+            padding: 0 20px 25px;
+            font-size: 12px;
+        }
+
+        @media (max-width: 700px) {
+            header { padding: 15px 4%; }
+            main { width: 94%; margin-top: 20px; }
+            .panel { padding: 16px; }
+            .stats { gap: 9px; }
+            .stat { padding: 14px; }
+            .stat-value { font-size: 23px; }
+            .field { width: 100%; }
+            .field input, .field select { width: 100%; min-width: 0; }
+            .filters button { flex: 1; }
+        }
+
+        @media (max-width: 420px) {
+            .stats { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <div class="brand">Attend<span>IQ</span>
+        <small style="font-size:13px;font-weight:500;color:#d6deeb"> / Audit Log</small>
+    </div>
+
+    <nav class="nav">
+        <a class="nav-link" href="/teacher-analytics.html">Teacher Analytics</a>
+        <a class="nav-link" href="/teacher.html">Mark Attendance</a>
+        <button id="logoutButton" class="danger" type="button">Log out</button>
+    </nav>
+</header>
+
+<main>
+    <section class="heading">
+        <div>
+            <h1>Attendance Audit Log</h1>
+            <div class="muted">
+                Review changes made through the attendance correction tools.
+            </div>
+        </div>
+
+        <button id="exportButton" class="primary" type="button">Export CSV</button>
+    </section>
+
+    <div class="notice">
+        <strong>Audit coverage:</strong> this page records corrections and deletions made
+        through the Edit and Delete actions in Student Attendance History. It currently
+        shows up to the 200 most recent matching log entries. Initial attendance marking
+        is not yet included.
+    </div>
+
+    <div id="message" class="message" role="status"></div>
+
+    <section class="panel">
+        <h2>Filter audit entries</h2>
+
+        <div class="filters">
+            <div class="field">
+                <label for="fromDate">From date</label>
+                <input type="date" id="fromDate">
+            </div>
+
+            <div class="field">
+                <label for="toDate">To date</label>
+                <input type="date" id="toDate">
+            </div>
+
+            <div class="field">
+                <label for="studentUsername">Student username</label>
+                <input type="search" id="studentUsername" placeholder="e.g. student01">
+            </div>
+
+            <div class="field">
+                <label for="actionFilter">Action</label>
+                <select id="actionFilter">
+                    <option value="">All changes</option>
+                    <option value="UPDATED">Updated</option>
+                    <option value="DELETED">Deleted</option>
+                </select>
+            </div>
+
+            <button id="applyButton" class="primary" type="button">Apply filters</button>
+            <button id="clearButton" class="light" type="button">Clear filters</button>
+            <button id="refreshButton" class="light" type="button">Refresh</button>
+        </div>
+    </section>
+
+    <section class="stats">
+        <article class="stat">
+            <div class="stat-label">Matching log entries</div>
+            <div class="stat-value" id="totalCount">—</div>
+            <div class="muted">Within the recent results limit</div>
+        </article>
+
+        <article class="stat">
+            <div class="stat-label">Attendance edits</div>
+            <div class="stat-value" id="updatedCount">—</div>
+            <div class="muted">Changes to an existing record</div>
+        </article>
+
+        <article class="stat">
+            <div class="stat-label">Attendance deletions</div>
+            <div class="stat-value" id="deletedCount">—</div>
+            <div class="muted">Records removed through the correction page</div>
+        </article>
+    </section>
+
+    <section class="panel">
+        <div class="table-top">
+            <div>
+                <h2 style="margin-bottom:5px">Change history</h2>
+                <div class="muted" id="resultNote">Loading audit entries…</div>
+            </div>
+
+            <input id="quickSearch" type="search"
+                   placeholder="Search visible entries" style="max-width:260px">
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Changed at</th>
+                    <th>Changed by</th>
+                    <th>Student</th>
+                    <th>Action</th>
+                    <th>Record ID</th>
+                    <th>Previous values</th>
+                    <th>New values</th>
+                </tr>
+                </thead>
+
+                <tbody id="auditTable"></tbody>
+            </table>
+        </div>
+
+        <div id="emptyState" class="empty" style="display:none">
+            No audit entries match these filters. Edits and deletions performed before
+            audit logging was added will not appear here.
+        </div>
+    </section>
+</main>
+
+<footer>AttendIQ · Audit records for attendance corrections</footer>
+
+<script>
+    const storedUser = (() => {
+        try {
+            return JSON.parse(sessionStorage.getItem("attendiqUser") || "null");
+        } catch {
+            return null;
+        }
+    })();
+
+    if (!storedUser || String(storedUser.role || "").toUpperCase() !== "TEACHER") {
+        window.location.replace("/");
+    }
+
+    let auditLogs = [];
+    const messageBox = document.getElementById("message");
+
+    function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[character]);
+    }
+
+    function showMessage(message, type = "error") {
+        messageBox.textContent = message;
+        messageBox.className = "message " + type;
+    }
+
+    function clearMessage() {
+        messageBox.textContent = "";
+        messageBox.className = "message";
+    }
+
+    function displayDateTime(value) {
+        if (!value) return "—";
+
+        // The backend sends LocalDateTime without a time-zone offset.
+        // Display its components as stored rather than converting time zones.
+        const text = String(value).replace("T", " ");
+        return text.length > 19 ? text.substring(0, 19) : text;
+    }
+
+    function snapshot(log, prefix) {
+        const subject = log[prefix + "Subject"] || "—";
+        const date = log[prefix + "Date"] || "—";
+        const session = log[prefix + "ClassSession"] || "—";
+        const status = log[prefix + "Status"] || "—";
+
+        return `
+            <div class="snapshot">
+                <div><strong>${escapeHtml(subject)}</strong></div>
+                <div>Date: ${escapeHtml(date)}</div>
+                <div>Session: ${escapeHtml(session)}</div>
+                <div>Status: ${escapeHtml(status)}</div>
+            </div>
+        `;
+    }
+
+    async function loadLogs() {
+        clearMessage();
+
+        const from = document.getElementById("fromDate").value;
+        const to = document.getElementById("toDate").value;
+        const studentUsername =
+            document.getElementById("studentUsername").value.trim();
+        const actionType = document.getElementById("actionFilter").value;
+
+        if (from && to && from > to) {
+            showMessage("The start date cannot be after the end date.");
+            return;
+        }
+
+        const params = new URLSearchParams();
+
+        if (from) params.set("from", from);
+        if (to) params.set("to", to);
+        if (studentUsername) params.set("studentUsername", studentUsername);
+        if (actionType) params.set("actionType", actionType);
+
+        try {
+            const response = await fetch(
+                "/api/attendance/audit-logs" +
+                (params.toString() ? "?" + params.toString() : ""),
+                { credentials: "same-origin" }
+            );
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data.message || "Unable to load audit entries.");
+            }
+
+            auditLogs = Array.isArray(data.logs) ? data.logs : [];
+
+            document.getElementById("resultNote").textContent =
+                data.message || "Audit entries loaded.";
+
+            renderLogs();
+        } catch (error) {
+            showMessage(error.message || "A network error occurred.");
+            auditLogs = [];
+            renderLogs();
+        }
+    }
+
+    function renderLogs() {
+        const search = document.getElementById("quickSearch")
+            .value.trim().toLowerCase();
+
+        const filtered = auditLogs.filter(log => {
+            const searchText = [
+                log.actorUsername,
+                log.studentUsername,
+                log.studentName,
+                log.actionType,
+                log.attendanceRecordId,
+                log.oldSubject,
+                log.newSubject,
+                log.oldDate,
+                log.newDate,
+                log.oldStatus,
+                log.newStatus,
+                log.oldClassSession,
+                log.newClassSession,
+                log.changedAt
+            ].join(" ").toLowerCase();
+
+            return searchText.includes(search);
+        });
+
+        const updatedCount = auditLogs.filter(
+            log => log.actionType === "UPDATED"
+        ).length;
+
+        const deletedCount = auditLogs.filter(
+            log => log.actionType === "DELETED"
+        ).length;
+
+        document.getElementById("totalCount").textContent = filtered.length;
+        document.getElementById("updatedCount").textContent = updatedCount;
+        document.getElementById("deletedCount").textContent = deletedCount;
+
+        const table = document.getElementById("auditTable");
+
+        table.innerHTML = filtered.map(log => {
+            const updated = log.actionType === "UPDATED";
+            const actionClass = updated ? "pill updated" : "pill deleted";
+            const currentValues = updated
+                ? snapshot(log, "new")
+                : '<div class="snapshot">Record deleted</div>';
+
+            return `
+                <tr>
+                    <td>${escapeHtml(displayDateTime(log.changedAt))}</td>
+                    <td>${escapeHtml(log.actorUsername || "—")}</td>
+                    <td>
+                        <strong>${escapeHtml(log.studentName || "—")}</strong>
+                        <div class="muted">${escapeHtml(log.studentUsername || "—")}</div>
+                    </td>
+                    <td><span class="${actionClass}">${escapeHtml(log.actionType || "—")}</span></td>
+                    <td>${escapeHtml(log.attendanceRecordId ?? "—")}</td>
+                    <td>${snapshot(log, "old")}</td>
+                    <td>${currentValues}</td>
+                </tr>
+            `;
+        }).join("");
+
+        document.getElementById("emptyState").style.display =
+            filtered.length ? "none" : "block";
+    }
+
+    function exportCsv() {
+        if (!auditLogs.length) {
+            showMessage("There are no audit records to export.", "info");
+            return;
+        }
+
+        const rows = [[
+            "Changed At",
+            "Changed By",
+            "Student Name",
+            "Student Username",
+            "Action",
+            "Attendance Record ID",
+            "Old Subject",
+            "Old Date",
+            "Old Session",
+            "Old Status",
+            "New Subject",
+            "New Date",
+            "New Session",
+            "New Status"
+        ]];
+
+        auditLogs.forEach(log => {
+            rows.push([
+                log.changedAt,
+                log.actorUsername,
+                log.studentName,
+                log.studentUsername,
+                log.actionType,
+                log.attendanceRecordId,
+                log.oldSubject,
+                log.oldDate,
+                log.oldClassSession,
+                log.oldStatus,
+                log.newSubject,
+                log.newDate,
+                log.newClassSession,
+                log.newStatus
+            ]);
+        });
+
+        const csv = rows.map(row => row.map(value => {
+            let text = String(value ?? "");
+
+            // Reduce spreadsheet formula-injection risk in exported text fields.
+            if (/^[=+\-@]/.test(text)) text = "'" + text;
+
+            return '"' + text.replace(/"/g, '""') + '"';
+        }).join(",")).join("\r\n");
+
+        const blob = new Blob(["\uFEFF" + csv], {
+            type: "text/csv;charset=utf-8;"
+        });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "attendiq-attendance-audit-log.csv";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    document.getElementById("applyButton")
+        .addEventListener("click", loadLogs);
+
+    document.getElementById("refreshButton")
+        .addEventListener("click", loadLogs);
+
+    document.getElementById("clearButton").addEventListener("click", () => {
+        document.getElementById("fromDate").value = "";
+        document.getElementById("toDate").value = "";
+        document.getElementById("studentUsername").value = "";
+        document.getElementById("actionFilter").value = "";
+        document.getElementById("quickSearch").value = "";
+        loadLogs();
+    });
+
+    document.getElementById("quickSearch")
+        .addEventListener("input", renderLogs);
+
+    document.getElementById("exportButton")
+        .addEventListener("click", exportCsv);
+
+    document.getElementById("logoutButton").addEventListener("click", async () => {
+        try {
+            await fetch("/api/auth/logout", {
+                method: "POST",
+                credentials: "same-origin"
+            });
+        } finally {
+            sessionStorage.removeItem("attendiqUser");
+            window.location.replace("/");
+        }
+    });
+
+    loadLogs();
+</script>
+</body>
+</html>
